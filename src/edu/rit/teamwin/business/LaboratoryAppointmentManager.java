@@ -1,11 +1,14 @@
-/**
- * 
- */
 package edu.rit.teamwin.business;
+
+import static java.lang.String.format;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import components.data.Appointment;
 import components.data.DB;
@@ -15,6 +18,7 @@ import components.data.Patient;
 import components.data.Phlebotomist;
 
 import edu.rit.teamwin.LaboratoryAppointmentService;
+import edu.rit.teamwin.exceptions.AppointmentNotFoundException;
 
 /**
  * <p>
@@ -30,6 +34,24 @@ import edu.rit.teamwin.LaboratoryAppointmentService;
  */
 public class LaboratoryAppointmentManager
 {
+    private static final String   APPOINTMENT_TABLE            = "Appointment";
+
+    private static final String   APPOINTMENT_LAB_TEST_TABLE   = "AppointmentLabTest";
+
+    private static final String   DIAGNOSIS_TABLE              = "Diagnosis";
+
+    private static final String   LABTEST_TABLE                = "Labtest";
+
+    private static final String   PATIENT_SERVICE_CENTER_TABLE = "PSC";
+
+    private static final String   PATIENT_TABLE                = "Patient";
+
+    private static final String   PHLEBOTOMIST_TABLE           = "Phlebotomist";
+
+    private static final String   PHYSICIAN_TABLE              = "Physician";
+
+    private final Log             LOG                          = LogFactory.getLog( getClass() );
+
     private final IComponentsData dataLayer;
 
     /**
@@ -45,12 +67,39 @@ public class LaboratoryAppointmentManager
      */
     public List<Appointment> getAppointments()
     {
-        return null;
+        final List<Object> results = dataLayer.getData( APPOINTMENT_TABLE, "" );
+
+        final List<Appointment> appointments = new ArrayList<Appointment>( results.size() );
+
+        results.forEach( app -> appointments.add( (Appointment) app ) );
+
+        return appointments;
     }
 
     public Appointment getAppointment( final String appointmentId )
+            throws AppointmentNotFoundException
     {
-        return null;
+        final List<Object> results = dataLayer.getData( APPOINTMENT_TABLE,
+            format( "id='%s'", appointmentId ) );
+
+        if ( results.size() <= 0 )
+        {
+            throw new AppointmentNotFoundException( appointmentId );
+        }
+
+        if ( results.size() > 1 )
+        {
+            /*
+             * This really should never happen if the database has Id as the
+             * primary key
+             */
+            LOG.error( format( "Too many appointments with the same Id '%s'... somehow.",
+                appointmentId ) );
+        }
+
+        final Appointment appointment = (Appointment) results.get( 0 );
+
+        return appointment;
     }
 
     public boolean setupAppointment(
@@ -118,13 +167,30 @@ public class LaboratoryAppointmentManager
         LaboratoryAppointmentManager lam = new LaboratoryAppointmentManager( new DB() );
 
         lam.dataLayer.initialLoad( "LAMS" );
-        final List<Object> results = lam.dataLayer.getData( "Appointment", "" );
 
-        for ( final Object app : results )
+        // Get all appointments
+        lam.getAppointments().forEach( app -> System.out.println( app.getId() ) );
+
+        for ( int i = 0; i <= 50; i++ )
+            System.out.print( i >= 50 ? "\n" : "-" );
+
+        try
         {
-            System.out.println( ( (Appointment) app ).getId() );
+            // Get appointment 710
+            System.out.println( lam.getAppointment( "710" ) );
+
+            for ( int i = 0; i <= 50; i++ )
+                System.out.print( i >= 50 ? "\n" : "-" );
+
+            // Get appointment 710
+            System.out.println( lam.getAppointment( "701" ) );
+        } catch ( AppointmentNotFoundException e )
+        {
+            lam.LOG.error( e.getMessage() );
         }
 
-    }
+        for ( int i = 0; i <= 50; i++ )
+            System.out.print( i >= 50 ? "\n" : "-" );
 
+    }
 }

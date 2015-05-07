@@ -23,7 +23,7 @@
         <level value="INFO" />
     </logger>
 
-    <logger name="edu.rit.p3">
+    <logger name="edu.rit.teamwin">
         <level value="INFO" />
     </logger>
 
