@@ -1,6 +1,9 @@
 package edu.rit.teamwin.exceptions;
 
 import static java.lang.String.format;
+
+import components.data.Appointment;
+
 import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 
 /**
@@ -20,9 +23,22 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 @SuppressWarnings ( "serial" )
 public abstract class AppointmentNotValidException extends Exception
 {
-    public AppointmentNotValidException( final String problemWithAppointment )
+    private final Appointment invalidAppointment;
+
+    public AppointmentNotValidException(
+        final Appointment appointment,
+        final String problemWithAppointment )
     {
         super( format( "Appointment Not Valid: '%s'", problemWithAppointment ) );
+        this.invalidAppointment = appointment;
+    }
+
+    /**
+     * @return the invalidAppointment
+     */
+    public Appointment getInvalidAppointment()
+    {
+        return invalidAppointment;
     }
 
 }

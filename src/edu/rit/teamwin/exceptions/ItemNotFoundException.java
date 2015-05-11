@@ -21,6 +21,6 @@ public class ItemNotFoundException extends Exception
 {
     public ItemNotFoundException( final String table, final String filter )
     {
-        super( format( "Item from table '%s', cannot be found using filter: '%s'.", table, filter ) );
+        super( format( "Item from table %s, cannot be found using filter: %s.", table, filter ) );
     }
 }

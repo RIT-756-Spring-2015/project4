@@ -7,11 +7,16 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +33,8 @@ import edu.rit.teamwin.exceptions.AppointmentNotDuringBusinessHoursException;
 import edu.rit.teamwin.exceptions.AppointmentNotValidException;
 import edu.rit.teamwin.exceptions.ItemNotFoundException;
 import edu.rit.teamwin.exceptions.MaximumAppointmentCapacityReachedException;
+import edu.rit.teamwin.exceptions.PhlebotomistNotAvailableException;
+import edu.rit.teamwin.exceptions.PhlebotomistTravelAvailabilityException;
 import edu.rit.teamwin.utils.PropertiesSetter;
 
 /**
@@ -122,11 +129,11 @@ public class LaboratoryAppointmentManager
     public <T> T getItemByKey( final String table, final String keyName, final String key )
             throws ItemNotFoundException
     {
-        final List<T> items = this.<T> getData( table, format( "%s=%s", keyName, key ) );
+        final List<T> items = this.<T> getData( table, format( "%s='%s'", keyName, key ) );
 
         if ( items.size() <= 0 )
         {
-            throw new ItemNotFoundException( table, format( "%s=%s", keyName, key ) );
+            throw new ItemNotFoundException( table, format( "%s='%s'", keyName, key ) );
         }
 
         if ( items.size() > 1 )
@@ -156,7 +163,6 @@ public class LaboratoryAppointmentManager
         appointment.setPhlebid( phlebotomist );
         appointment.setPscid( psc );
 
-        // TODO make sure these throw exceptions if something goes wrong
         if ( validateAppointment( appointment ) )
         {
             dataLayer.addData( appointment );
@@ -188,40 +194,81 @@ public class LaboratoryAppointmentManager
 
         if ( apptTime.isBefore( OPEN_TIME ) || apptTime.isAfter( CLOSE_TIME ) )
         {
-            throw new AppointmentNotDuringBusinessHoursException( apptTime );
+            throw new AppointmentNotDuringBusinessHoursException( appointment );
         }
 
         /* Check if requested phlebotomist is not in another appointment */
         final Phlebotomist requestedPhlebotomist = getItemByKey( PHLEBOTOMIST_TABLE, "id",
             appointment.getPhlebid().getKey() );
 
-        final List<Appointment> conflictingAppointments = requestedPhlebotomist
-                .getAppointmentCollection()
+        final List<Appointment> phlebsAppointments = getData( APPOINTMENT_TABLE,
+            format( "phlebid='%s'", requestedPhlebotomist.getId() ) );
+
+        final Map<Appointment, AppointmentNotValidException> conflictingAppointments = phlebsAppointments
                 .stream()
+                .flatMap(
+                    app -> {
+                        final Builder<SimpleEntry<Appointment, AppointmentNotValidException>> builder = Stream
+                                .builder();
+                        builder.accept( new SimpleEntry<Appointment, AppointmentNotValidException>(
+                                app, null ) );
+                        return builder.build();
+                    } )
                 .filter(
                     app -> {
-                        if ( !appointment.getApptdate().toLocalDate()
-                                .equals( app.getApptdate().toLocalDate() ) )
-                            return true;
-                        else
+                        if ( appointment.getApptdate().toLocalDate()
+                                .equals( app.getKey().getApptdate().toLocalDate() ) )
                         {
-                            final LocalTime appStart = app.getAppttime().toLocalTime();
-                            final LocalTime appEnd = app.getAppttime().toLocalTime()
+                            /*
+                             * Check if requested phlebotomist is not within 30
+                             * minutes of requested PSC (for travel time)
+                             */
+                            final boolean differentPSC = !app.getKey().getPscid()
+                                    .equals( appointment.getPscid() );
+
+                            final LocalTime appStart = app.getKey().getAppttime().toLocalTime();
+                            final LocalTime appEnd = app.getKey().getAppttime().toLocalTime()
                                     .plus( APPOINTMENT_DURATION );
                             final LocalTime appointmentStart = apptTime;
                             final LocalTime appointmentEnd = apptTime.plus( APPOINTMENT_DURATION );
-                            
-//                            if ( appointmentEnd.isBefore( apptTime ) )
-                            
+
+                            if ( appointmentEnd.isBefore( appStart.plusSeconds( 1 ) ) )
+                            {
+                                if ( differentPSC &&
+                                        Duration.between( appointmentEnd, appStart ).compareTo(
+                                            PHLEBOTOMIST_TRAVEL_DURATION ) < 0 )
+                                {
+                                    app.setValue( new PhlebotomistTravelAvailabilityException(
+                                            appointment, app.getKey() ) );
+                                    return true;
+                                }
+                            } else if ( appointmentStart.isAfter( appEnd.minusSeconds( 1 ) ) )
+                            {
+                                if ( differentPSC &&
+                                        Duration.between( appEnd, appointmentStart ).compareTo(
+                                            PHLEBOTOMIST_TRAVEL_DURATION ) < 0 )
+                                {
+                                    app.setValue( new PhlebotomistTravelAvailabilityException(
+                                            appointment, app.getKey() ) );
+                                    return true;
+                                }
+                            } else
+                            {
+                                app.setValue( new PhlebotomistNotAvailableException( appointment,
+                                        app.getKey() ) );
+                                return true;
+                            }
                         }
-                        return true;
-                    } ).collect( Collectors.toList() );
+                        return false;
+                    } )
+                .collect( Collectors.toMap( pair -> pair.getKey(), pair -> pair.getValue() ) );
 
-
-        /*
-         * Check if requested phlebotomist is not within 30 minutes of requested
-         * PSC (for travel time) (And 15 minutes for the appointment)
-         */
+        if ( conflictingAppointments.size() > 0 )
+        {
+            final List<Appointment> apps = conflictingAppointments.keySet().stream()
+                    .collect( Collectors.toList() );
+            throw conflictingAppointments.get( apps.get( 0 ) );
+        }
 
         return true;
     }
@@ -274,26 +321,39 @@ public class LaboratoryAppointmentManager
     {
         LaboratoryAppointmentManager lam = new LaboratoryAppointmentManager( new DB() );
 
-        // Start it up!
+        /* Start it up! */
         lam.dataLayer.initialLoad( "LAMS" );
 
-        printLine();
-
-        // Get all appointments
+        /* Get all appointments */
+        System.out.println( "  Appointments" );
         System.out.println( lam.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ).stream()
                 .map( app -> app.getId() ).collect( Collectors.toList() ) );
 
         printLine();
 
-        // Try to setup a new appointment
+        /* Get all PSCs */
+        System.out.println( "  PSCs" );
+        System.out.println( lam.<PSC> getData( PATIENT_SERVICE_CENTER_TABLE, NO_FILTER ).stream()
+                .map( psc -> psc.getId() ).collect( Collectors.toList() ) );
+
+        printLine();
+
+        /* Get all Phlebotomists */
+        System.out.println( "  Phlebotomists" );
+        System.out.println( lam.<Phlebotomist> getData( PHLEBOTOMIST_TABLE, NO_FILTER ).stream()
+                .map( phleb -> phleb.getId() ).collect( Collectors.toList() ) );
+
+        printLine();
+
+        /* Try to setup a new appointment before open */
         try
         {
-            final Appointment appointment = lam
-                    .setupAppointment( Date.from( Instant.now() ), ( (Patient) lam.dataLayer
-                            .getData( PATIENT_TABLE, NO_FILTER ).get( 0 ) ), ( (PSC) lam.dataLayer
-                            .getData( PATIENT_SERVICE_CENTER_TABLE, NO_FILTER ).get( 0 ) ),
-                        ( (Phlebotomist) lam.dataLayer.getData( PHLEBOTOMIST_TABLE, NO_FILTER )
-                                .get( 0 ) ) );
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T07:30:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
             System.out.println( appointment );
 
@@ -304,7 +364,118 @@ public class LaboratoryAppointmentManager
 
         printLine();
 
-        // Get all appointments
+        /* Try to setup a new appointment after close */
+        try
+        {
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T17:30:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
+
+            System.out.println( appointment );
+
+        } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+        }
+
+        printLine();
+
+        /*
+         * Try to setup a new appointment with a phlebotomist who is busy
+         * already
+         */
+        try
+        {
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T13:10:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
+
+            System.out.println( appointment );
+
+        } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+        }
+
+        printLine();
+
+        /*
+         * Try to setup a new appointment with a phlebotomist who will not make
+         * it in time to the requested PSC
+         */
+        try
+        {
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T13:30:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
+
+            System.out.println( appointment );
+
+        } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+        }
+
+        printLine();
+
+        /*
+         * Try to setup a new appointment with a phlebotomist who will make it
+         * in time to the requested PSC because he/she is already at it
+         */
+        try
+        {
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T13:15:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
+
+            System.out.println( appointment );
+
+        } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+        }
+
+        printLine();
+
+        /*
+         * Try to setup a new appointment with a phlebotomist who will make it
+         * in time to the requested PSC because he/she will have enough travel
+         * time
+         */
+        try
+        {
+            final Phlebotomist phleb = lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" );
+
+            final Appointment appointment = lam.setupAppointment(
+                Date.from( LocalDateTime.parse( "2004-02-01T14:00:00" ).toInstant(
+                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
+                lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
+                lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
+
+            System.out.println( appointment );
+
+        } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+        }
+
+        printLine();
+
+        /* Get all appointments */
+        System.out.println( "  Appointments" );
         System.out.println( lam.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ).stream()
                 .map( app -> app.getId() ).collect( Collectors.toList() ) );
 
@@ -315,8 +486,8 @@ public class LaboratoryAppointmentManager
             // Get appointment 710
             System.out.println( lam.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", "710" ) );
             printLine();
-            // Get appointment 702 ( And fail on purpose )
-            System.out.println( lam.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", "702" ) );
+            // Get appointment 703 ( And fail on purpose )
+            System.out.println( lam.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", "703" ) );
 
         } catch ( ItemNotFoundException e )
         {

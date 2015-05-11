@@ -2,7 +2,7 @@ package edu.rit.teamwin.exceptions;
 
 import static java.lang.String.format;
 
-import java.time.LocalTime;
+import components.data.Appointment;
 
 import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 
@@ -22,9 +22,10 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 @SuppressWarnings ( "serial" )
 public class AppointmentNotDuringBusinessHoursException extends AppointmentNotValidException
 {
-    public AppointmentNotDuringBusinessHoursException( final LocalTime appointmentTime )
+    public AppointmentNotDuringBusinessHoursException( final Appointment appointment )
     {
-        super( format( "Appointment time '%s' is not between the hours of OPEN and CLOSE",
-            appointmentTime ) );
+        super( appointment, format(
+            "Appointment time '%s' is not between the hours of OPEN and CLOSE",
+            appointment.getAppttime() ) );
     }
 }
