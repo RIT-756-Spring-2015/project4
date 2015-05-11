@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import components.data.DB;
 
 import edu.rit.teamwin.business.LaboratoryAppointmentManager;
+import edu.rit.teamwin.utils.PropertiesSetter;
 
 /**
  * <p>
@@ -31,6 +32,16 @@ public class LaboratoryAppointmentService
     private UriInfo                            context;
 
     private final LaboratoryAppointmentManager LAM;
+
+    {
+        try
+        {
+            PropertiesSetter.class.newInstance();
+        } catch ( final Exception e )
+        {
+            LOG.error( e.getMessage() );
+        }
+    }
 
     public LaboratoryAppointmentService()
     {

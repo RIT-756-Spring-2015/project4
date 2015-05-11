@@ -8,8 +8,8 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
  * This exception is thrown in the by
  * {@link LaboratoryAppointmentManager#validateAppointment(components.data.Appointment)
  * LaboratoryAppointmentManager.validateAppoint}(
- * {@link components.data.Appointment appointment} ) when a given appointment
- * Id cannot be found in the database.
+ * {@link components.data.Appointment appointment} ) when a given appointment Id
+ * cannot be found in the database.
  * </p>
  * 
  * @author Alex Aiezza
@@ -18,7 +18,7 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
  *
  */
 @SuppressWarnings ( "serial" )
-public class AppointmentNotValidException extends RuntimeException
+public abstract class AppointmentNotValidException extends Exception
 {
     public AppointmentNotValidException( final String problemWithAppointment )
     {
