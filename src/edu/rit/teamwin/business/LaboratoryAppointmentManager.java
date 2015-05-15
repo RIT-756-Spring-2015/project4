@@ -104,6 +104,9 @@ public class LaboratoryAppointmentManager
     public LaboratoryAppointmentManager( final IComponentsData dataLayer )
     {
         this.dataLayer = dataLayer;
+        /* Start it up! */
+        dataLayer.initialLoad( "LAMS" );
+        LOG.info( "Business Layer Created" );
     }
 
     /**
@@ -319,9 +322,6 @@ public class LaboratoryAppointmentManager
     public static void main( String [] args ) throws ItemNotFoundException
     {
         LaboratoryAppointmentManager lam = new LaboratoryAppointmentManager( new DB() );
-
-        /* Start it up! */
-        lam.dataLayer.initialLoad( "LAMS" );
 
         /* Get all appointments */
         System.out.println( "  Appointments" );
