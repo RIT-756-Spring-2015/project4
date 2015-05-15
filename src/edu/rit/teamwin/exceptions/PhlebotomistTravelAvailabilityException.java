@@ -32,7 +32,7 @@ public class PhlebotomistTravelAvailabilityException extends AppointmentNotValid
         super(
                 appointment,
                 format(
-                    "Requested Phlebotomist (%s) is not available at PSC (%s) for the requested appointment because he/she will be coming from PSC () and won't have enough time to travel",
+                    "Requested Phlebotomist (%s) is not available at PSC (%s) for the requested appointment because he/she will be coming from PSC (%s) and won't have enough time to travel",
                     appointment.getPhlebid().getId(), appointment.getPscid().getId(),
                     conflictingAppointment.getPscid().getId() ) );
 
