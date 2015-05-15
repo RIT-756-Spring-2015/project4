@@ -32,8 +32,8 @@ public class PhlebotomistNotAvailableException extends AppointmentNotValidExcept
         super(
                 appointment,
                 format(
-                    "Requested Phlebotomist (%s) is not available at for the requested appointment due to a conflicting appointment",
-                    appointment.getPhlebid().getId(), appointment.getPscid().getId() ) );
+                    "Requested Phlebotomist (%s) is not available at for the requested appointment due to a conflicting appointment (%s)",
+                    appointment.getPhlebid().getId(), conflictingAppointment.getId() ) );
         this.conflictingAppointment = conflictingAppointment;
     }
 

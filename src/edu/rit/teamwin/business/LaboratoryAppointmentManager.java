@@ -62,25 +62,25 @@ public class LaboratoryAppointmentManager
         }
     }
 
-    private static final String APPOINTMENT_TABLE            = "Appointment";
+    public static final String APPOINTMENT_TABLE            = "Appointment";
 
-    private static final String APPOINTMENT_LAB_TEST_TABLE   = "AppointmentLabTest";
+    public static final String APPOINTMENT_LAB_TEST_TABLE   = "AppointmentLabTest";
 
-    private static final String DIAGNOSIS_TABLE              = "Diagnosis";
+    public static final String DIAGNOSIS_TABLE              = "Diagnosis";
 
-    private static final String LABTEST_TABLE                = "Labtest";
+    public static final String LABTEST_TABLE                = "Labtest";
 
-    private static final String PATIENT_SERVICE_CENTER_TABLE = "PSC";
+    public static final String PATIENT_SERVICE_CENTER_TABLE = "PSC";
 
-    private static final String PATIENT_TABLE                = "Patient";
+    public static final String PATIENT_TABLE                = "Patient";
 
-    private static final String PHLEBOTOMIST_TABLE           = "Phlebotomist";
+    public static final String PHLEBOTOMIST_TABLE           = "Phlebotomist";
 
-    private static final String PHYSICIAN_TABLE              = "Physician";
+    public static final String PHYSICIAN_TABLE              = "Physician";
 
-    private static final String NO_FILTER                    = "";
+    public static final String NO_FILTER                    = "";
 
-    public static final int     MAX_APPOINTMENT_ID           = 0xFFFFF;
+    public static final int    MAX_APPOINTMENT_ID           = 0xFFFFF;
 
     public static final LocalTime OPEN_TIME, CLOSE_TIME;
 
@@ -163,33 +163,33 @@ public class LaboratoryAppointmentManager
         appointment.setPhlebid( phlebotomist );
         appointment.setPscid( psc );
 
-        if ( validateAppointment( appointment ) )
-        {
-            dataLayer.addData( appointment );
-        }
+        validateAppointment( appointment );
+        dataLayer.addData( appointment );
 
         return appointment;
 
     }
 
-    public boolean updateAppointment(
+    public void updateAppointment(
             final Appointment oldAppointment,
-            final Appointment updatedAppointment )
+            final Appointment updatedAppointment ) throws AppointmentNotValidException,
+            ItemNotFoundException
     {
         assert ( oldAppointment.getId().equals( updatedAppointment.getId() ) );
+        assert ( oldAppointment.getPatientid().getId().equals( updatedAppointment.getPatientid()
+                .getId() ) );
+
         // see if the updatedAppointment will schedule
-        // if so, we're good!
-        // if not, reschedule the old appointment and return false
-        return false;
+        validateAppointment( updatedAppointment );
+        dataLayer.updateData( updatedAppointment );
     }
 
-    public boolean validateAppointment( final Appointment appointment )
+    public void validateAppointment( final Appointment appointment )
             throws AppointmentNotValidException, ItemNotFoundException
     {
         // APPOINTMENT VALIDITY CHECKS!
 
         /* Make sure appointment time is between time of open and time of close */
-
         final LocalTime apptTime = appointment.getAppttime().toLocalTime();
 
         if ( apptTime.isBefore( OPEN_TIME ) || apptTime.isAfter( CLOSE_TIME ) )
@@ -216,6 +216,13 @@ public class LaboratoryAppointmentManager
                     } )
                 .filter(
                     app -> {
+                        /*
+                         * Check if the appointment Ids being compared are the
+                         * same. If so, that appointment is being updated!
+                         */
+                        if ( appointment.getId().equals( app.getKey().getId() ) )
+                            return false;
+
                         if ( appointment.getApptdate().toLocalDate()
                                 .equals( app.getKey().getApptdate().toLocalDate() ) )
                         {
@@ -269,14 +276,6 @@ public class LaboratoryAppointmentManager
                     .collect( Collectors.toList() );
             throw conflictingAppointments.get( apps.get( 0 ) );
         }
-
-        return true;
-    }
-
-    public boolean deleteAppointment( final Appointment appointment )
-    {
-        // Delete the appointment
-        return false;
     }
 
     /**
@@ -456,8 +455,6 @@ public class LaboratoryAppointmentManager
          */
         try
         {
-            final Phlebotomist phleb = lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" );
-
             final Appointment appointment = lam.setupAppointment(
                 Date.from( LocalDateTime.parse( "2004-02-01T14:00:00" ).toInstant(
                     ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
@@ -493,6 +490,26 @@ public class LaboratoryAppointmentManager
         {
             lam.LOG.error( e.getMessage() );
         }
+
+        printLine();
+
+        // Try to update appointment 710 with a new phlebotomist
+        final Appointment app = lam.getItemByKey( APPOINTMENT_TABLE, "id", "710" );
+        final Appointment updatedApp = (Appointment) app.clone();
+        final Phlebotomist newPhleb = lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "120" );
+
+        updatedApp.setPhlebid( newPhleb );
+        updatedApp.setAppttime( Time.valueOf( "13:45:00" ) );
+        try
+        {
+            lam.updateAppointment( app, updatedApp );
+        } catch ( AppointmentNotValidException e )
+        {
+            lam.LOG.error( e.getMessage() );
+            System.out.println();
+        }
+
+        System.out.println( lam.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", "710" ) );
 
         printLine();
 
