@@ -66,6 +66,10 @@ public class AppointmentConverter implements Converter
         context.convertAnother( appointment.getPhlebid() );
         writer.endNode();
 
+        writer.startNode( "psc" );
+        context.convertAnother( appointment.getPscid() );
+        writer.endNode();
+
         writer.startNode( "allLabTests" );
         List<AppointmentLabTest> allLabTests = Collections.checkedList(
             appointment.getAppointmentLabTestCollection(), AppointmentLabTest.class );

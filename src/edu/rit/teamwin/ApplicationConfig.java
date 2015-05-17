@@ -8,7 +8,7 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import edu.rit.teamwin.stream.LAMEntityWriter;
+import edu.rit.teamwin.stream.LAMEntityXMLConverter;
 
 /**
  * @author Alex Aiezza
@@ -33,7 +33,7 @@ public class ApplicationConfig extends Application
     private void addRestResourceClasses( Set<Class<?>> resources )
     {
         resources.add( LaboratoryAppointmentService.class );
-        resources.add( LAMEntityWriter.AppointmentWriter.class );
-        resources.add( LAMEntityWriter.AppointmentsWriter.class );
+        resources.add( LAMEntityXMLConverter.AppointmentWriter.class );
+        resources.add( LAMEntityXMLConverter.AppointmentsWriter.class );
     }
 }

@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import components.data.Appointment;
+import components.data.AppointmentLabTest;
 import components.data.DB;
 
 import edu.rit.teamwin.business.LaboratoryAppointmentManager;
@@ -69,6 +70,14 @@ public class LaboratoryAppointmentService
         LOG.info( "Service Layer Created" );
     }
 
+    @Path ( "init" )
+    @GET
+    public boolean init()
+    {
+        LOG.debug( "Initializing Database" );
+        return LAM.initializeDatabase();
+    }
+
     @Path ( "Services" )
     @GET
     public String getServices()
@@ -102,16 +111,28 @@ public class LaboratoryAppointmentService
     @POST
     @Consumes ( MediaType.APPLICATION_XML )
     public String createAppointment( final Appointment appointment )
-            throws MaximumAppointmentCapacityReachedException, AppointmentNotValidException,
-            ItemNotFoundException
+            throws MaximumAppointmentCapacityReachedException
     {
         LOG.info( "POST Appointments called" );
 
-        final Appointment app = LAM.setupAppointment( LocalDateTime.of( appointment.getApptdate()
-                .toLocalDate(), appointment.getAppttime().toLocalTime() ), appointment
-                .getPatientid(), appointment.getPscid(), appointment.getPhlebid() );
+        try
+        {
+            final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
+                    .getAppointmentLabTestCollection().size()];
 
-        return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointment/" + app.getId() + "</uri>" );
+            final Appointment app = LAM.createAppointment( LocalDateTime.of( appointment
+                    .getApptdate().toLocalDate(), appointment.getAppttime().toLocalTime() ),
+                appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid(),
+                appointment.getAppointmentLabTestCollection().toArray( labTests ) );
+
+            LAM.setupAppointment( app );
+
+            return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
+                    "LAMSAppointment/Appointments/" + app.getId() + "</uri>" );
+        } catch ( AppointmentNotValidException | ItemNotFoundException e )
+        {
+            return format( getProperty( "default.xml" ), "<error>" + e.getMessage() + "</error>" );
+        }
     }
 
     @Path ( "Appointments/{appointment}" )
@@ -120,14 +141,30 @@ public class LaboratoryAppointmentService
     public String updateAppointment(
             @PathParam ( "appointment" ) final String appointmentId,
             final Appointment appointment ) throws AppointmentNotValidException,
-            ItemNotFoundException
+            ItemNotFoundException, MaximumAppointmentCapacityReachedException
     {
         LOG.info( format( "PUT Appointments %s called", appointmentId ) );
 
-        final Appointment oldAppointment = LAM
-                .getItemByKey( APPOINTMENT_TABLE, "id", appointmentId );
+        try
+        {
+            final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
+                    .getAppointmentLabTestCollection().size()];
 
-        LAM.updateAppointment( oldAppointment, appointment );
-        return format( "Link to newly created appointment: %s", appointment.getId() );
+            final Appointment app = LAM.createAppointment( appointmentId, LocalDateTime.of(
+                appointment.getApptdate().toLocalDate(), appointment.getAppttime().toLocalTime() ),
+                appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid(),
+                appointment.getAppointmentLabTestCollection().toArray( labTests ) );
+
+            final Appointment oldAppointment = LAM.getItemByKey( APPOINTMENT_TABLE, "id",
+                appointmentId );
+
+            LAM.updateAppointment( oldAppointment, app );
+
+            return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
+                    "LAMSAppointment/Appointments/" + app.getId() + "</uri>" );
+        } catch ( AppointmentNotValidException | ItemNotFoundException e )
+        {
+            return format( getProperty( "default.xml" ), "<error>" + e.getMessage() + "</error>" );
+        }
     }
 }

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import components.data.Appointment;
+import components.data.AppointmentLabTest;
 import components.data.DB;
 import components.data.IComponentsData;
 import components.data.PSC;
@@ -66,7 +65,7 @@ public class LaboratoryAppointmentManager
 
     public static final String DIAGNOSIS_TABLE              = "Diagnosis";
 
-    public static final String LABTEST_TABLE                = "Labtest";
+    public static final String LABTEST_TABLE                = "LabTest";
 
     public static final String PATIENT_SERVICE_CENTER_TABLE = "PSC";
 
@@ -103,8 +102,12 @@ public class LaboratoryAppointmentManager
     {
         this.dataLayer = dataLayer;
         /* Start it up! */
-        dataLayer.initialLoad( "LAMS" );
         LOG.info( "Business Layer Created" );
+    }
+
+    public boolean initializeDatabase()
+    {
+        return dataLayer.initialLoad( "LAMS" );
     }
 
     /**
@@ -150,25 +153,61 @@ public class LaboratoryAppointmentManager
         return items.get( 0 );
     }
 
-    public Appointment setupAppointment(
-            final LocalDateTime date,
-            final Patient patient,
-            final PSC psc,
-            final Phlebotomist phlebotomist ) throws MaximumAppointmentCapacityReachedException,
-            AppointmentNotValidException, ItemNotFoundException
+    public Appointment setupAppointment( final Appointment appointment )
+            throws MaximumAppointmentCapacityReachedException, AppointmentNotValidException,
+            ItemNotFoundException
     {
-        // Create the appointment object
-        final Appointment appointment = new Appointment( generateID(), java.sql.Date.valueOf( date
-                .toLocalDate() ), Time.valueOf( date.toLocalTime() ) );
-        appointment.setPatientid( getItemByKey( PATIENT_TABLE, "id", patient.getId() ) );
-        appointment.setPhlebid( getItemByKey( PHLEBOTOMIST_TABLE, "id", phlebotomist.getId() ) );
-        appointment.setPscid( getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", psc.getId() ) );
 
         validateAppointment( appointment );
         dataLayer.addData( appointment );
 
         return appointment;
+    }
 
+    public Appointment createAppointment(
+            final LocalDateTime date,
+            final Patient patient,
+            final PSC psc,
+            final Phlebotomist phlebotomist,
+            final AppointmentLabTest... labTests )
+            throws MaximumAppointmentCapacityReachedException, AppointmentNotValidException,
+            ItemNotFoundException
+    {
+        return createAppointment( generateID(), date, patient, psc, phlebotomist, labTests );
+    }
+
+    public Appointment createAppointment(
+            final String appointmentId,
+            final LocalDateTime date,
+            final Patient patient,
+            final PSC psc,
+            final Phlebotomist phlebotomist,
+            final AppointmentLabTest... labTests )
+            throws MaximumAppointmentCapacityReachedException, AppointmentNotValidException,
+            ItemNotFoundException
+    {
+        // Create the appointment object
+        final Appointment appointment = new Appointment( appointmentId, java.sql.Date.valueOf( date
+                .toLocalDate() ), Time.valueOf( date.toLocalTime() ) );
+        appointment.setPatientid( getItemByKey( PATIENT_TABLE, "id", patient.getId() ) );
+        appointment.setPhlebid( getItemByKey( PHLEBOTOMIST_TABLE, "id", phlebotomist.getId() ) );
+        appointment.setPscid( getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", psc.getId() ) );
+
+        final List<AppointmentLabTest> labTestsList = new ArrayList<AppointmentLabTest>(
+                labTests.length );
+
+        for ( final AppointmentLabTest test : labTests )
+        {
+            // See if lab test exists
+            getItemByKey( LABTEST_TABLE, "id", test.getLabTest().getId() );
+            // See if diagnosis code exists
+            getItemByKey( DIAGNOSIS_TABLE, "code", test.getDiagnosis().getCode() );
+            labTestsList.add( new AppointmentLabTest( appointment.getId(), test.getLabTest()
+                    .getId(), test.getDiagnosis().getCode() ) );
+        }
+        appointment.setAppointmentLabTestCollection( labTestsList );
+
+        return appointment;
     }
 
     public void updateAppointment(
@@ -207,14 +246,7 @@ public class LaboratoryAppointmentManager
 
         final Map<Appointment, AppointmentNotValidException> conflictingAppointments = phlebsAppointments
                 .stream()
-                .flatMap(
-                    app -> {
-                        final Builder<SimpleEntry<Appointment, AppointmentNotValidException>> builder = Stream
-                                .builder();
-                        builder.accept( new SimpleEntry<Appointment, AppointmentNotValidException>(
-                                app, null ) );
-                        return builder.build();
-                    } )
+                .map( app -> new SimpleEntry<Appointment, AppointmentNotValidException>( app, null ) )
                 .filter(
                     app -> {
                         /*
@@ -345,12 +377,13 @@ public class LaboratoryAppointmentManager
         /* Try to setup a new appointment before open */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T07:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
@@ -363,12 +396,13 @@ public class LaboratoryAppointmentManager
         /* Try to setup a new appointment after close */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T17:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
@@ -384,12 +418,13 @@ public class LaboratoryAppointmentManager
          */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T13:10:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
@@ -405,12 +440,13 @@ public class LaboratoryAppointmentManager
          */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T13:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
@@ -426,12 +462,13 @@ public class LaboratoryAppointmentManager
          */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T13:15:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )
@@ -448,12 +485,13 @@ public class LaboratoryAppointmentManager
          */
         try
         {
-            final Appointment appointment = lam.setupAppointment(
+            final Appointment appointment = lam.createAppointment(
                 LocalDateTime.parse( "2004-02-01T14:00:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
 
+            lam.setupAppointment( appointment );
             System.out.println( appointment );
 
         } catch ( MaximumAppointmentCapacityReachedException | AppointmentNotValidException e )

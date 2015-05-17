@@ -32,7 +32,7 @@ import components.data.Appointment;
  * @author Salil Rajadhyaksha
  *
  */
-public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, MessageBodyReader<T>
+public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>, MessageBodyReader<T>
 {
 
     @Override
@@ -54,10 +54,25 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
         return -1;
     }
 
+    protected XStream createXStream()
+    {
+        final XStream xstream = new XStream( new DomDriver( "UTF-8" ) );
+        xstream.setMode( XStream.NO_REFERENCES );
+
+        xstream.registerConverter( new AppointmentConverter( System.getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new PatientConverter() );
+        xstream.registerConverter( new PhlebotomistConverter() );
+        xstream.registerConverter( new PSCConverter() );
+        xstream.registerConverter( new ListConverter() );
+        xstream.registerConverter( new AppointmentLabTestConverter() );
+
+        return xstream;
+    }
+
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
     @Consumes ( MediaType.APPLICATION_XML )
-    public static class AppointmentWriter extends LAMEntityWriter<Appointment>
+    public static class AppointmentWriter extends LAMEntityXMLConverter<Appointment>
     {
         @Override
         public boolean isWriteable(
@@ -79,14 +94,7 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
                 MultivaluedMap<String, Object> httpHeaders,
                 OutputStream out ) throws IOException, WebApplicationException
         {
-            final XStream xstream = new XStream( new DomDriver( "UTF-8" ) );
-            xstream.setMode( XStream.NO_REFERENCES );
-
-            xstream.registerConverter( new AppointmentConverter( System.getProperty( "baseUri" ) ) );
-            xstream.registerConverter( new PatientConverter() );
-            xstream.registerConverter( new PhlebotomistConverter() );
-            xstream.registerConverter( new ListConverter() );
-            xstream.registerConverter( new AppointmentLabTestConverter() );
+            final XStream xstream = createXStream();
 
             xstream.alias( "AppointmentList", Appointment.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
@@ -113,12 +121,7 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
                 MultivaluedMap<String, String> httpHeaders,
                 InputStream entityStream ) throws IOException, WebApplicationException
         {
-            final XStream xstream = new XStream();
-            xstream.registerConverter( new AppointmentConverter( System.getProperty( "baseUri" ) ) );
-            xstream.registerConverter( new PatientConverter() );
-            xstream.registerConverter( new PhlebotomistConverter() );
-            xstream.registerConverter( new ListConverter() );
-            xstream.registerConverter( new AppointmentLabTestConverter() );
+            final XStream xstream = createXStream();
 
             xstream.alias( "appointment", Appointment.class );
 
@@ -129,7 +132,7 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
 
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
-    public static class AppointmentsWriter extends LAMEntityWriter<List<Appointment>>
+    public static class AppointmentsWriter extends LAMEntityXMLConverter<List<Appointment>>
     {
         @Override
         public boolean isWriteable( Class<?> type, Type type1, Annotation [] antns, MediaType mt )
@@ -147,14 +150,7 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
                 MultivaluedMap<String, Object> mm,
                 OutputStream out ) throws IOException, WebApplicationException
         {
-            final XStream xstream = new XStream( new DomDriver( "UTF-8" ) );
-            xstream.setMode( XStream.NO_REFERENCES );
-
-            xstream.registerConverter( new AppointmentConverter( System.getProperty( "baseUri" ) ) );
-            xstream.registerConverter( new PatientConverter() );
-            xstream.registerConverter( new PhlebotomistConverter() );
-            xstream.registerConverter( new ListConverter() );
-            xstream.registerConverter( new AppointmentLabTestConverter() );
+            final XStream xstream = createXStream();
 
             xstream.alias( "AppointmentList", List.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
@@ -181,7 +177,6 @@ public abstract class LAMEntityWriter <T> implements MessageBodyWriter<T>, Messa
                 MultivaluedMap<String, String> httpHeaders,
                 InputStream entityStream ) throws IOException, WebApplicationException
         {
-            // TODO Auto-generated method stub
             return null;
         }
     }
