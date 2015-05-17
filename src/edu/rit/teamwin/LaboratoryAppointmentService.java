@@ -6,7 +6,6 @@ import static java.lang.String.format;
 import static java.lang.System.getProperty;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -92,6 +91,8 @@ public class LaboratoryAppointmentService
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Appointment %s called", appointmentId ) );
+
+        System.setProperty( "baseUri", context.getBaseUri().toString() );
 
         return LAM.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", appointmentId );
     }
