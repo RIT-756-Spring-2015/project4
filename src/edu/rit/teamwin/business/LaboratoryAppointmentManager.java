@@ -4,12 +4,10 @@ import static java.lang.String.format;
 import static java.lang.System.getProperty;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 
-import java.sql.Date;
 import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
@@ -153,18 +151,18 @@ public class LaboratoryAppointmentManager
     }
 
     public Appointment setupAppointment(
-            final java.util.Date date,
+            final LocalDateTime date,
             final Patient patient,
             final PSC psc,
             final Phlebotomist phlebotomist ) throws MaximumAppointmentCapacityReachedException,
             AppointmentNotValidException, ItemNotFoundException
     {
         // Create the appointment object
-        final Appointment appointment = new Appointment( generateID(), new java.sql.Date(
-                date.getTime() ), new Time( date.getTime() ) );
-        appointment.setPatientid( patient );
-        appointment.setPhlebid( phlebotomist );
-        appointment.setPscid( psc );
+        final Appointment appointment = new Appointment( generateID(), java.sql.Date.valueOf( date
+                .toLocalDate() ), Time.valueOf( date.toLocalTime() ) );
+        appointment.setPatientid( getItemByKey( PATIENT_TABLE, "id", patient.getId() ) );
+        appointment.setPhlebid( getItemByKey( PHLEBOTOMIST_TABLE, "id", phlebotomist.getId() ) );
+        appointment.setPscid( getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", psc.getId() ) );
 
         validateAppointment( appointment );
         dataLayer.addData( appointment );
@@ -348,8 +346,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T07:30:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T07:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
@@ -367,8 +364,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T17:30:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T17:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
@@ -389,8 +385,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T13:10:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T13:10:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
@@ -411,8 +406,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T13:30:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T13:30:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
@@ -433,8 +427,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T13:15:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T13:15:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "510" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );
@@ -456,8 +449,7 @@ public class LaboratoryAppointmentManager
         try
         {
             final Appointment appointment = lam.setupAppointment(
-                Date.from( LocalDateTime.parse( "2004-02-01T14:00:00" ).toInstant(
-                    ZoneOffset.of( ZoneOffset.SHORT_IDS.get( "EST" ) ) ) ),
+                LocalDateTime.parse( "2004-02-01T14:00:00" ),
                 lam.getItemByKey( PATIENT_TABLE, "id", "230" ),
                 lam.getItemByKey( PATIENT_SERVICE_CENTER_TABLE, "id", "520" ),
                 lam.getItemByKey( PHLEBOTOMIST_TABLE, "id", "110" ) );

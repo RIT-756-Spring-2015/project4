@@ -5,6 +5,7 @@ import static edu.rit.teamwin.business.LaboratoryAppointmentManager.NO_FILTER;
 import static java.lang.String.format;
 import static java.lang.System.getProperty;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -106,10 +107,11 @@ public class LaboratoryAppointmentService
     {
         LOG.info( "POST Appointments called" );
 
-        final Appointment app = LAM.setupAppointment( appointment.getApptdate(),
-            appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid() );
+        final Appointment app = LAM.setupAppointment( LocalDateTime.of( appointment.getApptdate()
+                .toLocalDate(), appointment.getAppttime().toLocalTime() ), appointment
+                .getPatientid(), appointment.getPscid(), appointment.getPhlebid() );
 
-        return format( "Link to newly created appointment: %s", app.getId() );
+        return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointment/" + app.getId() + "</uri>" );
     }
 
     @Path ( "Appointments/{appointment}" )

@@ -21,9 +21,7 @@ public class ListConverter implements Converter
     public void marshal( Object source, HierarchicalStreamWriter writer, MarshallingContext context )
     {
         final List<?> list = (List<?>) source;
-
         list.forEach( element -> context.convertAnother( element ) );
-
     }
 
     @Override

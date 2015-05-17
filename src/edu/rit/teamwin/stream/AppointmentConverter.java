@@ -2,6 +2,10 @@ package edu.rit.teamwin.stream;
 
 import static java.lang.String.format;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,6 +16,12 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import components.data.Appointment;
 import components.data.AppointmentLabTest;
+import components.data.Diagnosis;
+import components.data.LabTest;
+import components.data.PSC;
+import components.data.Patient;
+import components.data.Phlebotomist;
+import components.data.Physician;
 
 
 /**
@@ -25,7 +35,7 @@ public class AppointmentConverter implements Converter
 
     public AppointmentConverter( final String uri )
     {
-        this.uri = uri + "Appointments/%s";
+        this.uri = uri + "LAMSAppointment/Appointments/%s";
     }
 
     @Override
@@ -39,6 +49,7 @@ public class AppointmentConverter implements Converter
     {
         final Appointment appointment = (Appointment) source;
 
+        writer.startNode( "appointment" );
         writer.addAttribute( "date", appointment.getApptdate().toString() );
         writer.addAttribute( "id", appointment.getId() );
         writer.addAttribute( "time", appointment.getAppttime().toString() );
@@ -61,14 +72,48 @@ public class AppointmentConverter implements Converter
         context.convertAnother( allLabTests );
         writer.endNode();
 
+        writer.endNode();
     }
 
     @Override
     public Object unmarshal( HierarchicalStreamReader reader, UnmarshallingContext context )
     {
-        // TODO Auto-generated method stub
-        return null;
+        final Appointment appointment = new Appointment();
+
+        reader.moveDown();
+        appointment.setApptdate( Date.valueOf( reader.getValue() ) );
+        reader.moveUp();
+        reader.moveDown();
+        appointment.setAppttime( Time.valueOf( LocalTime.parse( reader.getValue() ) ) );
+        reader.moveUp();
+        reader.moveDown();
+        final Patient patient = new Patient( reader.getValue() );
+        reader.moveUp();
+        reader.moveDown();
+        patient.setPhysician( new Physician( reader.getValue() ) );
+        appointment.setPatientid( patient );
+        reader.moveUp();
+        reader.moveDown();
+        appointment.setPscid( new PSC( reader.getValue() ) );
+        reader.moveUp();
+        reader.moveDown();
+        appointment.setPhlebid( new Phlebotomist( reader.getValue() ) );
+        reader.moveUp();
+        reader.moveDown();
+        final List<AppointmentLabTest> labTests = new ArrayList<AppointmentLabTest>();
+        while ( reader.hasMoreChildren() )
+        {
+            reader.moveDown();
+            final AppointmentLabTest alt = new AppointmentLabTest();
+            alt.setLabTest( new LabTest( reader.getAttribute( "id" ) ) );
+            alt.setDiagnosis( new Diagnosis( reader.getAttribute( "dxcode" ) ) );
+            labTests.add( alt );
+            reader.moveUp();
+        }
+        reader.moveUp();
+
+        appointment.setAppointmentLabTestCollection( labTests );
+
+        return appointment;
     }
-
-
 }
