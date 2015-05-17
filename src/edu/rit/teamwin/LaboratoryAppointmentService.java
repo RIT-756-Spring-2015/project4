@@ -79,12 +79,11 @@ public class LaboratoryAppointmentService
 
     @Path ( "Appointments" )
     @GET
-    public List<String> getAppointments()
+    public List<Appointment> getAppointments()
     {
         LOG.info( "GET Appointments called" );
 
-        return LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ).stream()
-                .map( app -> app.getId() ).collect( Collectors.toList() );
+        return LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER );
     }
 
     @Path ( "Appointments/{appointment}" )

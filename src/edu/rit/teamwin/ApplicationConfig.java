@@ -8,6 +8,8 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
+import edu.rit.teamwin.stream.LAMEntityWriter;
+
 /**
  * @author Alex Aiezza
  *
@@ -15,7 +17,6 @@ import javax.ws.rs.core.Application;
 @ApplicationPath ( "webresources" )
 public class ApplicationConfig extends Application
 {
-
     @Override
     public Set<Class<?>> getClasses()
     {
@@ -32,6 +33,7 @@ public class ApplicationConfig extends Application
     private void addRestResourceClasses( Set<Class<?>> resources )
     {
         resources.add( LaboratoryAppointmentService.class );
+        resources.add( LAMEntityWriter.AppointmentWriter.class );
+        resources.add( LAMEntityWriter.AppointmentsWriter.class );
     }
-
 }
