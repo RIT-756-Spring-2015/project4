@@ -72,10 +72,10 @@ public class LaboratoryAppointmentService
 
     @Path ( "init" )
     @GET
-    public boolean init()
+    public String init()
     {
         LOG.debug( "Initializing Database" );
-        return LAM.initializeDatabase();
+        return "" + LAM.initializeDatabase();
     }
 
     @Path ( "Services" )

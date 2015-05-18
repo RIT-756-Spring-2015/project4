@@ -198,12 +198,13 @@ public class LaboratoryAppointmentManager
 
         for ( final AppointmentLabTest test : labTests )
         {
+            final AppointmentLabTest alt = new AppointmentLabTest( appointment.getId(), test
+                    .getLabTest().getId(), test.getDiagnosis().getCode() );
             // See if lab test exists
-            getItemByKey( LABTEST_TABLE, "id", test.getLabTest().getId() );
+            alt.setLabTest( getItemByKey( LABTEST_TABLE, "id", test.getLabTest().getId() ) );
             // See if diagnosis code exists
-            getItemByKey( DIAGNOSIS_TABLE, "code", test.getDiagnosis().getCode() );
-            labTestsList.add( new AppointmentLabTest( appointment.getId(), test.getLabTest()
-                    .getId(), test.getDiagnosis().getCode() ) );
+            alt.setDiagnosis( getItemByKey( DIAGNOSIS_TABLE, "code", test.getDiagnosis().getCode() ) );
+            labTestsList.add( alt );
         }
         appointment.setAppointmentLabTestCollection( labTestsList );
 
