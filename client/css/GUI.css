@@ -1,0 +1,11 @@
+input[type=button] {
+    width: 20em;  height: 5em;
+}
+
+div {
+	text-align: center;
+}
+
+span#serverUrl {
+	display: none;
+}

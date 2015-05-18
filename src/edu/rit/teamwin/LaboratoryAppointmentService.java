@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -24,6 +25,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.logging.Log;
@@ -102,11 +105,18 @@ public class LaboratoryAppointmentService
 
     @Path ( "Appointments" )
     @GET
-    public List<Appointment> getAppointments()
+    @OPTIONS
+    public Response getAppointments()
     {
         LOG.info( "GET Appointments called" );
+        final ResponseBuilder response = Response.ok();
 
-        return LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER );
+        response.header( "Access-Control-Allow-Origin", "*" );
+        response.header( "Access-Control-Allow-Headers", "*, X-Requested-With, Content-Type" );
+        response.header( "Access-Control-Allow-Methods", "GET, POST, DELETE, PUT" );
+        response.entity( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
+
+        return response.build();
     }
 
     @Path ( "Appointments/{appointment}" )
@@ -295,7 +305,7 @@ public class LaboratoryAppointmentService
 
         return LAM.<LabTest> getData( LABTEST_TABLE, format( "id='%s'", labTestId ) );
     }
-    
+
     @Path ( "Diagnoses" )
     @GET
     public List<Diagnosis> getDiagnoses()
