@@ -64,6 +64,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
         xstream.registerConverter( new AppointmentConverter( getProperty( "baseUri" ) ) );
         xstream.registerConverter( new PatientConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new PhysicianConverter( getProperty( "baseUri" ) ) );
         xstream.registerConverter( new PhlebotomistConverter( getProperty( "baseUri" ) ) );
         xstream.registerConverter( new PSCConverter( getProperty( "baseUri" ) ) );
         xstream.registerConverter( new AppointmentLabTestConverter( getProperty( "baseUri" ) ) );
