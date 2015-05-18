@@ -6,7 +6,7 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 /**
  * <p>
  * This exception is thrown in the by
- * {@link LaboratoryAppointmentManager#generateId()
+ * {@link LaboratoryAppointmentManager#generateID()
  * LaboratoryAppointmentManager.generateId} when the database cannot take any
  * more new appointments.
  * </p>

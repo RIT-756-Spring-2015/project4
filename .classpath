@@ -5,6 +5,7 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="lib/725DataComp.jar">
 		<attributes>
+			<attribute name="javadoc_location" value="file:/D:/git/project4/dataLayerDoc/"/>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>

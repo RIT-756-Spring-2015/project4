@@ -7,12 +7,19 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import components.data.Phlebotomist;
 
+/**
+ * 
+ * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
+ *
+ */
 public class PhlebotomistConverter implements Converter
 {
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return type.equals( Phlebotomist.class );
+        return Phlebotomist.class.isAssignableFrom( type );
     }
 
     @Override
@@ -20,6 +27,7 @@ public class PhlebotomistConverter implements Converter
     {
         final Phlebotomist phlebotomist = (Phlebotomist) source;
 
+        writer.startNode( "phlebotomist" );
         writer.addAttribute( "id", phlebotomist.getId() );
 
         writer.startNode( "uri" );
@@ -27,6 +35,8 @@ public class PhlebotomistConverter implements Converter
 
         writer.startNode( "name" );
         writer.setValue( phlebotomist.getName() );
+        writer.endNode();
+
         writer.endNode();
     }
 

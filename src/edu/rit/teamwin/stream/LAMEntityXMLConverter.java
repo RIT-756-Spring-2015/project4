@@ -20,11 +20,10 @@ import javax.ws.rs.ext.Provider;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
-import components.data.Appointment;
 
 /**
  * <p>
- * This class marshals the XML output of an appointment object.
+ * This class marshals &amp; unmarshals XML to objects and objects to XML.
  * </p>
  * 
  * @author Alex Aiezza
@@ -32,7 +31,8 @@ import components.data.Appointment;
  * @author Salil Rajadhyaksha
  *
  */
-public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>, MessageBodyReader<T>
+public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
+        MessageBodyReader<T>
 {
 
     @Override
@@ -69,10 +69,17 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
         return xstream;
     }
 
+    /**
+     * 
+     * @author Alex Aiezza
+     * @author Sagar Barbhaya
+     * @author Salil Rajadhyaksha
+     *
+     */
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
     @Consumes ( MediaType.APPLICATION_XML )
-    public static class AppointmentWriter extends LAMEntityXMLConverter<Appointment>
+    public static class Appointment extends LAMEntityXMLConverter<Appointment>
     {
         @Override
         public boolean isWriteable(
@@ -130,9 +137,16 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
     }
 
+    /**
+     * 
+     * @author Alex Aiezza
+     * @author Sagar Barbhaya
+     * @author Salil Rajadhyaksha
+     *
+     */
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
-    public static class AppointmentsWriter extends LAMEntityXMLConverter<List<Appointment>>
+    public static class Appointments extends LAMEntityXMLConverter<List<Appointment>>
     {
         @Override
         public boolean isWriteable( Class<?> type, Type type1, Annotation [] antns, MediaType mt )
@@ -142,7 +156,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
         @Override
         public void writeTo(
-                List<Appointment> appointment,
+                List<Appointment> appointments,
                 Class<?> type,
                 Type type1,
                 Annotation [] antns,
@@ -155,7 +169,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
             xstream.alias( "AppointmentList", List.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
             writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" );
-            xstream.toXML( appointment, writer );
+            xstream.toXML( appointments, writer );
         }
 
         @Override

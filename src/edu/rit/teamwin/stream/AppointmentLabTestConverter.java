@@ -7,6 +7,13 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import components.data.AppointmentLabTest;
 
+/**
+ * 
+ * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
+ *
+ */
 public class AppointmentLabTestConverter implements Converter
 {
 

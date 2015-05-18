@@ -6,8 +6,8 @@ import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 /**
  * <p>
  * This exception is thrown in the by
- * {@link LaboratoryAppointmentManager#getItem(String, String)
- * LaboratoryAppointmentManager.getItem} when a given primary key filter could
+ * {@link LaboratoryAppointmentManager#getItemByKey(String, String, String)
+ * LaboratoryAppointmentManager.getItemByKey} when a given primary key filter could
  * not be found in a given table.
  * </p>
  * 

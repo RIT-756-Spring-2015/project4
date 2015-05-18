@@ -26,6 +26,8 @@ import components.data.Physician;
 
 /**
  * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
  *
  */
 public class AppointmentConverter implements Converter
@@ -41,7 +43,7 @@ public class AppointmentConverter implements Converter
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return type.equals( Appointment.class );
+        return Appointment.class.isAssignableFrom( type );
     }
 
     @Override
@@ -58,17 +60,9 @@ public class AppointmentConverter implements Converter
         writer.setValue( format( uri, appointment.getId() ) );
         writer.endNode();
 
-        writer.startNode( "patient" );
         context.convertAnother( appointment.getPatientid() );
-        writer.endNode();
-
-        writer.startNode( "phlebotomist" );
         context.convertAnother( appointment.getPhlebid() );
-        writer.endNode();
-
-        writer.startNode( "psc" );
         context.convertAnother( appointment.getPscid() );
-        writer.endNode();
 
         writer.startNode( "allLabTests" );
         List<AppointmentLabTest> allLabTests = Collections.checkedList(

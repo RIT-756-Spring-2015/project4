@@ -12,12 +12,15 @@ import java.util.Properties;
  */
 public class PropertiesSetter
 {
+    //@formatter:off
     /**
      * <p>
-     * <strong>Property File:</strong>
-     * <tt>${com.sun.aas.instanceRoot}/applications/LAMSAppointment/resources/project4.properties</tt>
+     * <strong>Property File:</strong> {@value}
+     * <!-- tt>${com.sun.aas.instanceRoot
+     * }/applications/LAMSAppointment/resources/project4.properties</tt -->
      * </p>
      */
+    //@formatter:on
     private static final String PROPERTIES_FILE = "project4.properties";
 
     public PropertiesSetter() throws IOException

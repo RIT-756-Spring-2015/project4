@@ -7,12 +7,19 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import components.data.PSC;
 
+/**
+ * 
+ * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
+ *
+ */
 public class PSCConverter implements Converter
 {
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return type.equals( PSC.class );
+        return PSC.class.isAssignableFrom( type );
     }
 
     @Override
@@ -20,6 +27,7 @@ public class PSCConverter implements Converter
     {
         final PSC psc = (PSC) source;
 
+        writer.startNode( "psc" );
         writer.addAttribute( "id", psc.getId() );
 
         writer.startNode( "uri" );
@@ -27,6 +35,8 @@ public class PSCConverter implements Converter
 
         writer.startNode( "name" );
         writer.setValue( psc.getName() );
+        writer.endNode();
+
         writer.endNode();
     }
 

@@ -97,16 +97,17 @@ public class LaboratoryAppointmentManager
 
     /**
      * @param dataLayer
+     *            The Data Layer to use for this business layer
      */
     public LaboratoryAppointmentManager( final IComponentsData dataLayer )
     {
         this.dataLayer = dataLayer;
-        /* Start it up! */
         LOG.info( "Business Layer Created" );
     }
 
     public boolean initializeDatabase()
     {
+        /* Start it up! */
         return dataLayer.initialLoad( "LAMS" );
     }
 
@@ -115,6 +116,8 @@ public class LaboratoryAppointmentManager
      *            The database table to acquire objects from
      * @param filter
      *            The WHERE clause to limit the the objects from the table
+     * @param <T>
+     *            The type of data to expect from the table being queried
      * @return a list of objects requested from the database. List will be empty
      *         if there were no entries in the table.
      */

@@ -7,13 +7,20 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import components.data.Patient;
 
+/**
+ * 
+ * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
+ *
+ */
 public class PatientConverter implements Converter
 {
 
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return type.equals( Patient.class );
+        return Patient.class.isAssignableFrom( type );
     }
 
     @Override
@@ -21,6 +28,7 @@ public class PatientConverter implements Converter
     {
         final Patient patient = (Patient) source;
 
+        writer.startNode( "patient" );
         writer.addAttribute( "id", patient.getId() );
 
         writer.startNode( "uri" );
@@ -42,6 +50,7 @@ public class PatientConverter implements Converter
         writer.setValue( patient.getDateofbirth().toString() );
         writer.endNode();
 
+        writer.endNode();
     }
 
     @Override

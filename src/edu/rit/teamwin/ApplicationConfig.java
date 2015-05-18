@@ -11,7 +11,10 @@ import javax.ws.rs.core.Application;
 import edu.rit.teamwin.stream.LAMEntityXMLConverter;
 
 /**
+ * 
  * @author Alex Aiezza
+ * @author Sagar Barbhaya
+ * @author Salil Rajadhyaksha
  *
  */
 @ApplicationPath ( "webresources" )
@@ -25,15 +28,10 @@ public class ApplicationConfig extends Application
         return resources;
     }
 
-    /**
-     * Do not modify addRestResourceClasses() method. It is automatically
-     * populated with all resources defined in the project. If required, comment
-     * out calling this method in getClasses().
-     */
     private void addRestResourceClasses( Set<Class<?>> resources )
     {
         resources.add( LaboratoryAppointmentService.class );
-        resources.add( LAMEntityXMLConverter.AppointmentWriter.class );
-        resources.add( LAMEntityXMLConverter.AppointmentsWriter.class );
+        resources.add( LAMEntityXMLConverter.Appointment.class );
+        resources.add( LAMEntityXMLConverter.Appointments.class );
     }
 }

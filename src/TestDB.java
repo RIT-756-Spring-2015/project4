@@ -67,7 +67,6 @@ public class TestDB
         newAppt.setPhlebid( phleb );
         newAppt.setPscid( psc );
 
-        boolean good = db.addData( newAppt );
         objs = db.getData( "Appointment", "" );
         for ( Object obj : objs )
         {
