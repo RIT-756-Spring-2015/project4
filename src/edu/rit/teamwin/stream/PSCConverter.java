@@ -1,5 +1,7 @@
 package edu.rit.teamwin.stream;
 
+import static java.lang.String.format;
+
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -16,6 +18,13 @@ import components.data.PSC;
  */
 public class PSCConverter implements Converter
 {
+    private final String uri;
+
+    public PSCConverter( final String uri )
+    {
+        this.uri = uri + "LAMSAppointment/PSCs/%s";
+    }
+
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
@@ -31,6 +40,7 @@ public class PSCConverter implements Converter
         writer.addAttribute( "id", psc.getId() );
 
         writer.startNode( "uri" );
+        writer.setValue( format( uri, psc.getId() ) );
         writer.endNode();
 
         writer.startNode( "name" );

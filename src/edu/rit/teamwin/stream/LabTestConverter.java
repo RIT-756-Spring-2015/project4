@@ -7,7 +7,7 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import components.data.AppointmentLabTest;
+import components.data.LabTest;
 
 /**
  * 
@@ -16,33 +16,39 @@ import components.data.AppointmentLabTest;
  * @author Salil Rajadhyaksha
  *
  */
-public class AppointmentLabTestConverter implements Converter
+public class LabTestConverter implements Converter
 {
     private final String uri;
 
-    public AppointmentLabTestConverter( final String uri )
+    public LabTestConverter( final String uri )
     {
-        this.uri = uri + "LAMSAppointment/AppointmentLabTestPKs/%s";
+        this.uri = uri + "LAMSAppointment/LabTests/%s";
     }
 
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return type.equals( AppointmentLabTest.class );
+        return type.equals( LabTest.class );
     }
 
     @Override
     public void marshal( Object source, HierarchicalStreamWriter writer, MarshallingContext context )
     {
-        final AppointmentLabTest alt = (AppointmentLabTest) source;
+        final LabTest labTest = (LabTest) source;
 
         writer.startNode( "appointmentLabTest" );
-        writer.addAttribute( "appointmentId", alt.getAppointment().getId() );
-        writer.addAttribute( "dxcode", alt.getDiagnosis().getCode() );
-        writer.addAttribute( "labTestId", alt.getLabTest().getId() );
+        writer.addAttribute( "id", labTest.getId() );
+
+        writer.startNode( "name" );
+        writer.setValue( labTest.getName() );
+        writer.endNode();
+
+        writer.startNode( "cost" );
+        writer.setValue( format( "%.2f", labTest.getCost() ) );
+        writer.endNode();
 
         writer.startNode( "uri" );
-        writer.setValue( format( uri, alt.getKey().getApptid() ) );
+        writer.setValue( format( uri, labTest.getId() ) );
         writer.endNode();
 
         writer.endNode();
@@ -51,7 +57,6 @@ public class AppointmentLabTestConverter implements Converter
     @Override
     public Object unmarshal( HierarchicalStreamReader reader, UnmarshallingContext context )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 

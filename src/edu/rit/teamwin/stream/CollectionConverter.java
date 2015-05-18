@@ -1,13 +1,12 @@
 package edu.rit.teamwin.stream;
 
-import static java.lang.String.format;
+import java.util.Collection;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import components.data.Phlebotomist;
 
 /**
  * 
@@ -16,38 +15,20 @@ import components.data.Phlebotomist;
  * @author Salil Rajadhyaksha
  *
  */
-public class PhlebotomistConverter implements Converter
+public class CollectionConverter implements Converter
 {
-    private final String uri;
-
-    public PhlebotomistConverter( final String uri )
-    {
-        this.uri = uri + "LAMSAppointment/Phlebotomists/%s";
-    }
 
     @Override
     public boolean canConvert( @SuppressWarnings ( "rawtypes" ) Class type )
     {
-        return Phlebotomist.class.isAssignableFrom( type );
+        return Collection.class.isAssignableFrom( type );
     }
 
     @Override
     public void marshal( Object source, HierarchicalStreamWriter writer, MarshallingContext context )
     {
-        final Phlebotomist phlebotomist = (Phlebotomist) source;
-
-        writer.startNode( "phlebotomist" );
-        writer.addAttribute( "id", phlebotomist.getId() );
-
-        writer.startNode( "uri" );
-        writer.setValue( format( uri, phlebotomist.getId() ) );
-        writer.endNode();
-
-        writer.startNode( "name" );
-        writer.setValue( phlebotomist.getName() );
-        writer.endNode();
-
-        writer.endNode();
+        final Collection<?> list = (Collection<?>) source;
+        list.forEach( element -> context.convertAnother( element ) );
     }
 
     @Override
@@ -55,4 +36,6 @@ public class PhlebotomistConverter implements Converter
     {
         return null;
     }
+
+
 }

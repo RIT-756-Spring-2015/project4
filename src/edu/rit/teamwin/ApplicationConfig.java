@@ -31,7 +31,7 @@ public class ApplicationConfig extends Application
     private void addRestResourceClasses( Set<Class<?>> resources )
     {
         resources.add( LaboratoryAppointmentService.class );
-        resources.add( LAMEntityXMLConverter.Appointment.class );
-        resources.add( LAMEntityXMLConverter.Appointments.class );
+        resources.add( LAMEntityXMLConverter.AppointmentMessageBody.class );
+        resources.add( LAMEntityXMLConverter.ListMessageBody.class );
     }
 }

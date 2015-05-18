@@ -1,5 +1,7 @@
 package edu.rit.teamwin.stream;
 
+import static java.lang.System.getProperty;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,6 +22,7 @@ import javax.ws.rs.ext.Provider;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+import components.data.Appointment;
 
 /**
  * <p>
@@ -59,12 +62,14 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
         final XStream xstream = new XStream( new DomDriver( "UTF-8" ) );
         xstream.setMode( XStream.NO_REFERENCES );
 
-        xstream.registerConverter( new AppointmentConverter( System.getProperty( "baseUri" ) ) );
-        xstream.registerConverter( new PatientConverter() );
-        xstream.registerConverter( new PhlebotomistConverter() );
-        xstream.registerConverter( new PSCConverter() );
-        xstream.registerConverter( new ListConverter() );
-        xstream.registerConverter( new AppointmentLabTestConverter() );
+        xstream.registerConverter( new AppointmentConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new PatientConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new PhlebotomistConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new PSCConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new AppointmentLabTestConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new LabTestConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new DiagnosisConverter( getProperty( "baseUri" ) ) );
+        xstream.registerConverter( new CollectionConverter() );
 
         return xstream;
     }
@@ -79,7 +84,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
     @Consumes ( MediaType.APPLICATION_XML )
-    public static class Appointment extends LAMEntityXMLConverter<Appointment>
+    public static class AppointmentMessageBody extends LAMEntityXMLConverter<Appointment>
     {
         @Override
         public boolean isWriteable(
@@ -144,9 +149,10 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
      * @author Salil Rajadhyaksha
      *
      */
+    @SuppressWarnings ( "rawtypes" )
     @Provider
     @Produces ( MediaType.APPLICATION_XML )
-    public static class Appointments extends LAMEntityXMLConverter<List<Appointment>>
+    public static class ListMessageBody extends LAMEntityXMLConverter<List>
     {
         @Override
         public boolean isWriteable( Class<?> type, Type type1, Annotation [] antns, MediaType mt )
@@ -156,7 +162,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
         @Override
         public void writeTo(
-                List<Appointment> appointments,
+                List list,
                 Class<?> type,
                 Type type1,
                 Annotation [] antns,
@@ -169,7 +175,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
             xstream.alias( "AppointmentList", List.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
             writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" );
-            xstream.toXML( appointments, writer );
+            xstream.toXML( list, writer );
         }
 
         @Override
@@ -183,8 +189,8 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
         }
 
         @Override
-        public List<Appointment> readFrom(
-                Class<List<Appointment>> type,
+        public List readFrom(
+                Class<List> type,
                 Type genericType,
                 Annotation [] annotations,
                 MediaType mediaType,
