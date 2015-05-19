@@ -10,9 +10,12 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 <meta name="author" content="Sagar Barbhaya">
 <meta name="author" content="Salil Rajadhyaksha">
 
-<link rel="stylesheet" type="text/css" href="css/GUI.css">
+<link rel="icon" type="image/ico" href="images/favicon.ico">
+
+<link rel="stylesheet" type="text/css" href="css/style.css">
 
 <script src='//code.jquery.com/jquery-2.1.3.min.js'></script>
+<script src='js/lib/underscore-min.js'></script>
 <script src="js/AppointmentWidget.js"></script>
 
 </head>
@@ -24,7 +27,8 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 			</tr>
 			<tr>
 				<td><input type="button" value="Get Appointments"
-					extension="Appointments"></td>
+					extension="Appointments"
+					></td>
 			</tr>
 			<tr>
 				<td><input id="getAppointment" type="button" value="Get Appointment"

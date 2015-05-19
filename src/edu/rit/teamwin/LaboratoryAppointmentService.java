@@ -17,7 +17,6 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -105,15 +104,12 @@ public class LaboratoryAppointmentService
 
     @Path ( "Appointments" )
     @GET
-    @OPTIONS
     public Response getAppointments()
     {
         LOG.info( "GET Appointments called" );
+        
         final ResponseBuilder response = Response.ok();
-
         response.header( "Access-Control-Allow-Origin", "*" );
-        response.header( "Access-Control-Allow-Headers", "*, X-Requested-With, Content-Type" );
-        response.header( "Access-Control-Allow-Methods", "GET, POST, DELETE, PUT" );
         response.entity( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
 
         return response.build();
