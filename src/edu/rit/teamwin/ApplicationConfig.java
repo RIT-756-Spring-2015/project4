@@ -8,6 +8,10 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
+import components.data.DB;
+import components.data.IComponentsData;
+
+import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 import edu.rit.teamwin.stream.LAMEntityXMLConverter;
 
 /**
@@ -23,15 +27,26 @@ public class ApplicationConfig extends Application
     @Override
     public Set<Class<?>> getClasses()
     {
-        Set<Class<?>> resources = new java.util.HashSet<>();
-        addRestResourceClasses( resources );
-        return resources;
+        final Set<Class<?>> classes = new java.util.HashSet<>();
+        classes.add( LAMEntityXMLConverter.AppointmentMessageBody.class );
+        classes.add( LAMEntityXMLConverter.ListMessageBody.class );
+        return classes;
+    }
+    
+    @Override
+    public Set<Object> getSingletons()
+    {
+        final Set<Object> singletons = new java.util.HashSet<>();
+        addRestResourceSingletons( singletons );
+        return singletons;
     }
 
-    private void addRestResourceClasses( Set<Class<?>> resources )
+    private void addRestResourceSingletons( final Set<Object> singletons )
     {
-        resources.add( LaboratoryAppointmentService.class );
-        resources.add( LAMEntityXMLConverter.AppointmentMessageBody.class );
-        resources.add( LAMEntityXMLConverter.ListMessageBody.class );
+        final IComponentsData dataLayer = new DB();
+        singletons.add( dataLayer );
+        final LaboratoryAppointmentManager businessLayer = new LaboratoryAppointmentManager( dataLayer );
+        singletons.add( businessLayer );
+        singletons.add( new LaboratoryAppointmentService( businessLayer ) );
     }
 }

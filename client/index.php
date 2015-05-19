@@ -23,26 +23,26 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 	<div id="content">
 		<table>
 			<tr>
-				<td><input type="button" value="Get Services" extension="Services"></td>
+				<td><input id="getServices" type="button" value="Get Services" extension="Services"></td>
 			</tr>
 			<tr>
-				<td><input type="button" value="Get Appointments"
+				<td><input id="getAppointments" type="button" value="Get Appointments"
 					extension="Appointments"
 					></td>
 			</tr>
 			<tr>
 				<td><input id="getAppointment" type="button" value="Get Appointment"
 					extension="Appointments/" appointmentId=""></td>
-				<td><input type="text" value="Appointment ID"></td>
+				<td><input id="getAppointmentId" type="text" value="Appointment ID"></td>
 			</tr>
 			<tr>
-				<td><input type="button" value="Make Appointment"
+				<td><input id="makeAppointment" type="button" value="Make Appointment"
 					onclick="fillForm.php"></td>
 
 			</tr>
 			<tr>
-				<td><input type="button" value="Update Appointment" appointmentId=""></td>
-				<td><input type="text" value="Appointment ID"></td>
+				<td><input id="updateAppointment" type="button" value="Update Appointment" appointmentId=""></td>
+				<td><input id="updateAppointmentId" type="text" value="Appointment ID"></td>
 			</tr>
 		</table>
 	</div>

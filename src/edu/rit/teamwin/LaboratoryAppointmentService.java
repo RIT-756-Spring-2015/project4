@@ -13,7 +13,6 @@ import static java.lang.String.format;
 import static java.lang.System.getProperty;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -33,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 
 import components.data.Appointment;
 import components.data.AppointmentLabTest;
-import components.data.DB;
 import components.data.Diagnosis;
 import components.data.LabTest;
 import components.data.PSC;
@@ -79,10 +77,19 @@ public class LaboratoryAppointmentService
         }
     }
 
-    public LaboratoryAppointmentService()
+    public LaboratoryAppointmentService( final LaboratoryAppointmentManager lam )
     {
-        LAM = new LaboratoryAppointmentManager( new DB() );
+        LAM = lam;
         LOG.info( "Service Layer Created" );
+    }
+
+    private Response buildResponse( final Object entity )
+    {
+        final ResponseBuilder response = Response.ok( entity );
+        response.header( "Access-Control-Allow-Origin", "*" );
+        final Response resp = response.build();
+
+        return resp;
     }
 
     @Path ( "init" )
@@ -95,11 +102,12 @@ public class LaboratoryAppointmentService
 
     @Path ( "Services" )
     @GET
-    public String getServices()
+    public Response getServices()
     {
         LOG.debug( "Services called" );
         System.setProperty( "baseUri", context.getBaseUri().toString() );
-        return format( getProperty( "default.xml" ), getProperty( "services.get.xml" ) );
+        return buildResponse( format( getProperty( "default.xml" ),
+            getProperty( "services.get.xml" ) ) );
     }
 
     @Path ( "Appointments" )
@@ -107,28 +115,25 @@ public class LaboratoryAppointmentService
     public Response getAppointments()
     {
         LOG.info( "GET Appointments called" );
-        
-        final ResponseBuilder response = Response.ok();
-        response.header( "Access-Control-Allow-Origin", "*" );
-        response.entity( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
 
-        return response.build();
+        return buildResponse( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
     }
 
     @Path ( "Appointments/{appointment}" )
     @GET
-    public Appointment getAppointment( @PathParam ( "appointment" ) final String appointmentId )
+    public Response getAppointment( @PathParam ( "appointment" ) final String appointmentId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Appointment %s called", appointmentId ) );
 
-        return LAM.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id", appointmentId );
+        return buildResponse( LAM.<Appointment> getItemByKey( APPOINTMENT_TABLE, "id",
+            appointmentId ) );
     }
 
     @Path ( "Appointments" )
     @POST
     @Consumes ( MediaType.APPLICATION_XML )
-    public String createAppointment( final Appointment appointment )
+    public Response createAppointment( final Appointment appointment )
             throws MaximumAppointmentCapacityReachedException
     {
         LOG.info( "POST Appointments called" );
@@ -145,18 +150,20 @@ public class LaboratoryAppointmentService
 
             LAM.setupAppointment( app );
 
-            return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
-                    "LAMSAppointment/Appointments/" + app.getId() + "</uri>" );
+            return buildResponse( format( getProperty( "default.xml" ),
+                "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointments/" + app.getId() +
+                        "</uri>" ) );
         } catch ( AppointmentNotValidException | ItemNotFoundException e )
         {
-            return format( getProperty( "default.xml" ), "<error>" + e.getMessage() + "</error>" );
+            return buildResponse( format( getProperty( "default.xml" ), "<error>" + e.getMessage() +
+                    "</error>" ) );
         }
     }
 
     @Path ( "Appointments/{appointment}" )
     @PUT
     @Consumes ( MediaType.APPLICATION_XML )
-    public String updateAppointment(
+    public Response updateAppointment(
             @PathParam ( "appointment" ) final String appointmentId,
             final Appointment appointment ) throws AppointmentNotValidException,
             ItemNotFoundException, MaximumAppointmentCapacityReachedException
@@ -178,146 +185,153 @@ public class LaboratoryAppointmentService
 
             LAM.updateAppointment( oldAppointment, app );
 
-            return format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
-                    "LAMSAppointment/Appointments/" + app.getId() + "</uri>" );
+            return buildResponse( format( getProperty( "default.xml" ),
+                "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointments/" + app.getId() +
+                        "</uri>" ) );
         } catch ( AppointmentNotValidException | ItemNotFoundException e )
         {
-            return format( getProperty( "default.xml" ), "<error>" + e.getMessage() + "</error>" );
+            return buildResponse( format( getProperty( "default.xml" ), "<error>" + e.getMessage() +
+                    "</error>" ) );
         }
     }
 
     @Path ( "Patients" )
     @GET
-    public List<Patient> getPatients()
+    public Response getPatients()
     {
         LOG.info( "GET Patients called" );
 
-        return LAM.<Patient> getData( PATIENT_TABLE, NO_FILTER );
+        return buildResponse( LAM.<Patient> getData( PATIENT_TABLE, NO_FILTER ) );
     }
 
     @Path ( "Patients/{patient}" )
     @GET
-    public List<Patient> getPatient( @PathParam ( "patient" ) final String patientId )
+    public Response getPatient( @PathParam ( "patient" ) final String patientId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Patient %s called", patientId ) );
 
-        return LAM.<Patient> getData( PATIENT_TABLE, format( "id='%s'", patientId ) );
+        return buildResponse( LAM.<Patient> getData( PATIENT_TABLE, format( "id='%s'", patientId ) ) );
     }
 
     @Path ( "Physicians" )
     @GET
-    public List<Physician> getPhysicians()
+    public Response getPhysicians()
     {
         LOG.info( "GET Physicians called" );
 
-        return LAM.<Physician> getData( PHYSICIAN_TABLE, NO_FILTER );
+        return buildResponse( LAM.<Physician> getData( PHYSICIAN_TABLE, NO_FILTER ) );
     }
 
     @Path ( "Physicians/{physician}" )
     @GET
-    public List<Physician> getPhysician( @PathParam ( "physician" ) final String physicianId )
+    public Response getPhysician( @PathParam ( "physician" ) final String physicianId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Physician %s called", physicianId ) );
 
-        return LAM.<Physician> getData( PHYSICIAN_TABLE, format( "id='%s'", physicianId ) );
+        return buildResponse( LAM.<Physician> getData( PHYSICIAN_TABLE,
+            format( "id='%s'", physicianId ) ) );
     }
 
     @Path ( "Phlebotomists" )
     @GET
-    public List<Phlebotomist> getPhlebotomists()
+    public Response getPhlebotomists()
     {
         LOG.info( "GET Phlebotomists called" );
 
-        return LAM.<Phlebotomist> getData( PHLEBOTOMIST_TABLE, NO_FILTER );
+        return buildResponse( LAM.<Phlebotomist> getData( PHLEBOTOMIST_TABLE, NO_FILTER ) );
     }
 
     @Path ( "Phlebotomists/{phlebotomist}" )
     @GET
-    public List<Phlebotomist> getPhlebotomist(
-            @PathParam ( "phlebotomist" ) final String phlebotomistId )
+    public Response getPhlebotomist( @PathParam ( "phlebotomist" ) final String phlebotomistId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Phlebotomist %s called", phlebotomistId ) );
 
-        return LAM.<Phlebotomist> getData( PHLEBOTOMIST_TABLE, format( "id='%s'", phlebotomistId ) );
+        return buildResponse( LAM.<Phlebotomist> getData( PHLEBOTOMIST_TABLE,
+            format( "id='%s'", phlebotomistId ) ) );
     }
 
     @Path ( "PSCs" )
     @GET
-    public List<PSC> getPSCs()
+    public Response getPSCs()
     {
         LOG.info( "GET PSCs called" );
 
-        return LAM.<PSC> getData( PATIENT_SERVICE_CENTER_TABLE, NO_FILTER );
+        return buildResponse( LAM.<PSC> getData( PATIENT_SERVICE_CENTER_TABLE, NO_FILTER ) );
     }
 
     @Path ( "PSCs/{psc}" )
     @GET
-    public List<PSC> getPSC( @PathParam ( "psc" ) final String pscId ) throws ItemNotFoundException
+    public Response getPSC( @PathParam ( "psc" ) final String pscId ) throws ItemNotFoundException
     {
         LOG.info( format( "GET PSC %s called", pscId ) );
 
-        return LAM.<PSC> getData( PATIENT_SERVICE_CENTER_TABLE, format( "id='%s'", pscId ) );
+
+        return buildResponse( LAM.<PSC> getData( PATIENT_SERVICE_CENTER_TABLE,
+            format( "id='%s'", pscId ) ) );
     }
 
     @Path ( "AppointmentLabTestPKs" )
     @GET
-    public List<AppointmentLabTest> getAppointmentLabTestPKs()
+    public Response getAppointmentLabTestPKs()
     {
         LOG.info( "GET AppointmentLabTestPKs called" );
 
-        return LAM.<AppointmentLabTest> getData( APPOINTMENT_LAB_TEST_TABLE, NO_FILTER );
+        return buildResponse( LAM.<AppointmentLabTest> getData( APPOINTMENT_LAB_TEST_TABLE,
+            NO_FILTER ) );
     }
 
     @Path ( "AppointmentLabTestPKs/{appointmentId}" )
     @GET
-    public List<AppointmentLabTest> getAppointmentLabTestPK(
+    public Response getAppointmentLabTestPK(
             @PathParam ( "appointmentId" ) final String appointmentId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET AppointmentLabTestPK %s called", appointmentId ) );
 
-        return LAM.<AppointmentLabTest> getData( APPOINTMENT_LAB_TEST_TABLE,
-            format( "apptid='%s'", appointmentId ) );
+        return buildResponse( LAM.<AppointmentLabTest> getData( APPOINTMENT_LAB_TEST_TABLE,
+            format( "apptid='%s'", appointmentId ) ) );
     }
 
     @Path ( "LabTests" )
     @GET
-    public List<LabTest> getLabTests()
+    public Response getLabTests()
     {
         LOG.info( "GET LabTests called" );
 
-        return LAM.<LabTest> getData( LABTEST_TABLE, NO_FILTER );
+        return buildResponse( LAM.<LabTest> getData( LABTEST_TABLE, NO_FILTER ) );
     }
 
     @Path ( "LabTests/{labTest}" )
     @GET
-    public List<LabTest> getLabTest( @PathParam ( "labTest" ) final String labTestId )
+    public Response getLabTest( @PathParam ( "labTest" ) final String labTestId )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET LabTest %s called", labTestId ) );
 
-        return LAM.<LabTest> getData( LABTEST_TABLE, format( "id='%s'", labTestId ) );
+        return buildResponse( LAM.<LabTest> getData( LABTEST_TABLE, format( "id='%s'", labTestId ) ) );
     }
 
     @Path ( "Diagnoses" )
     @GET
-    public List<Diagnosis> getDiagnoses()
+    public Response getDiagnoses()
     {
         LOG.info( "GET Diagnoses called" );
 
-        return LAM.<Diagnosis> getData( DIAGNOSIS_TABLE, NO_FILTER );
+        return buildResponse( LAM.<Diagnosis> getData( DIAGNOSIS_TABLE, NO_FILTER ) );
     }
 
     @Path ( "Diagnoses/{diagnosis}" )
     @GET
-    public List<Diagnosis> getDiagnosis( @PathParam ( "diagnosis" ) final String diagnosisCode )
+    public Response getDiagnosis( @PathParam ( "diagnosis" ) final String diagnosisCode )
             throws ItemNotFoundException
     {
         LOG.info( format( "GET Diagnosis %s called", diagnosisCode ) );
 
-        return LAM.<Diagnosis> getData( DIAGNOSIS_TABLE, format( "code='%s'", diagnosisCode ) );
+        return buildResponse( LAM.<Diagnosis> getData( DIAGNOSIS_TABLE,
+            format( "code='%s'", diagnosisCode ) ) );
     }
 }
