@@ -5,6 +5,9 @@ input[type=button] {
 
 input:not([type=button]), select {
 	padding-left: 15px;
+}
+
+div#content select {
 	width: 90px;
 }
 

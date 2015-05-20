@@ -3,9 +3,10 @@
 	"name": "756-Project4",
 	"description": "",
 	"order": [
-		"62a04fe8-e0d2-1c37-677c-670b653243d5",
+		"eb5984ec-e627-b353-fefb-632fbe58f519",
 		"bc48c95d-27c2-58c2-3a4c-ed1320330923",
-		"6a655c6a-ced1-1d3a-a3d2-d8463f257b66"
+		"6a655c6a-ced1-1d3a-a3d2-d8463f257b66",
+		"62a04fe8-e0d2-1c37-677c-670b653243d5"
 	],
 	"folders": [
 		{
@@ -555,6 +556,26 @@
 			"synced": false,
 			"folder": "53724b8f-a867-9b0b-cf0e-f6abf870a3fc",
 			"rawModeData": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>\n<appointment>\n    <date>2016-12-30</date>\n    <time>10:00</time>\n    <patientId>220</patientId>\n    <physicianId>20</physicianId>\n    <pscId>510</pscId>\n    <phlebotomistId>110</phlebotomistId>\n    <labTests>\n        <test id=\"86900\" dxcode=\"292.9\" />\n        <test id=\"86609\" dxcode=\"307.3\" />\n    </labTests>\n</appointment>"
+		},
+		{
+			"id": "eb5984ec-e627-b353-fefb-632fbe58f519",
+			"headers": "Accept: application/xml\n",
+			"url": "http://localhost:8080/LAMService/webresources/LAMSAppointment/refresh",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1432097933588,
+			"name": "Refresh Database",
+			"description": "",
+			"collectionId": "202d3c73-7444-9dd9-493a-7e59b463b74c",
+			"responses": [],
+			"synced": false
 		},
 		{
 			"collectionId": "202d3c73-7444-9dd9-493a-7e59b463b74c",

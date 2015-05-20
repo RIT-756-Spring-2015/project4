@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -87,6 +88,8 @@ public class LaboratoryAppointmentService
     {
         final ResponseBuilder response = Response.ok( entity );
         response.header( "Access-Control-Allow-Origin", "*" );
+        response.header( "Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS" );
+        response.header( "Access-Control-Allow-Headers", "accept, content-type" );
         final Response resp = response.build();
 
         return resp;
@@ -125,6 +128,15 @@ public class LaboratoryAppointmentService
         LOG.info( "GET Appointments called" );
 
         return buildResponse( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
+    }
+    
+    @Path ( "Appointments" )
+    @OPTIONS
+    public Response optionsAppointments()
+    {
+        LOG.info( "OPTIONS Appointments called" );
+
+        return buildResponse("");
     }
 
     @Path ( "Appointments/{appointment}" )

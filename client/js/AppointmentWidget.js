@@ -3,18 +3,6 @@ var AppointmentWidget = function()
 {
     var global = this;
 
-    global.sleep = function sleep(milliseconds)
-    {
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e7; i++)
-        {
-            if ((new Date().getTime() - start) > milliseconds)
-            {
-                break;
-            }
-        }
-    }
-
     /////////////////////////////////
     // Widget Constructor Function //
     /////////////////////////////////
@@ -28,6 +16,7 @@ var AppointmentWidget = function()
 
         var serverURL = $("#serverURL").html();
 
+        // Appointment Template
         var appointmentTemplate = _
         .template("\
             <div>\
@@ -41,14 +30,15 @@ var AppointmentWidget = function()
             [<%= phlebotomist.name %>]</p>\
             <p style='padding-left:20px;'><a href=\"<%= psc.uri %>\">PSC: <%= psc.id %></a> \
             [<%= psc.name %>]</p>\
-            <p style='padding-left:20px;'><a href=\"<%= labTests.uri %>\">Labtests</a>:</p> \
+            <p style='padding-left:20px;'><a href=\"<%= labTests.uri %>\">Lab Tests</a>:</p> \
                 <% $.each( labTests.tests, function( i, test ){ %>\
                         <p style='padding-left:40px;margin-bottom:0;'>\
-                        <a href=\"<%= test.labTest.uri %>\">LabTest: <%= test.labTest.id %></a> [<%= test.labTest.name %>] ($<%= test.labTest.cost %>)</p>\
+                        <a href=\"<%= test.labTest.uri %>\">Lab Test: <%= test.labTest.id %></a> [<%= test.labTest.name %>] ($<%= test.labTest.cost %>)</p>\
                         		<p style='padding-left:60px;margin:0;'>><a href=\"<%= test.diagnosis.uri %>\">Diagnosis: <%= test.diagnosis.dxcode %></a> [<%= test.diagnosis.name %>]</p>\
                 <% }); %>\
             </div><hr>");
 
+        // Service Template
         var serviceTemplate = _
         .template("\
             <div>\
@@ -56,6 +46,7 @@ var AppointmentWidget = function()
             <p style='padding-left:20px;'><a href=\"<%= wadl %>\"><%= wadl %></a></p></h3>\
 			</div>");
 
+        // Patients and their physicians
         var patients = {};
 
         $.ajax({
@@ -78,17 +69,40 @@ var AppointmentWidget = function()
             });
         });
 
+        // Fill up appointment Ids
+        var appointmentOptionTemplate = _.template("\
+            <option>\
+            <%= id %>\
+        	</option>");
+
+        function fillAppointmentIds()
+        {
+            $("select#appointmentId").empty();
+            $.ajax({
+                async : false,
+                url : serverURL + "Appointments"
+            }).done(function(response)
+            {
+                $.each($(response.documentElement).children(), function()
+                {
+                    $("select#appointmentId").append(appointmentOptionTemplate({
+                        id : $(this).attr("id")
+                    }));
+                });
+            });
+        }
+
         //////////////////////////////
         // Private Instance Methods //
         //////////////////////////////
-        function getAppointments()
+        function getAppointments(ext)
         {
+            var appointments = {};
             $.ajax({
                 async : false,
-                url : serverURL + $(this).attr("extension")
+                url : serverURL + ext
             }).done(function(response)
             {
-                $("#results").empty();
                 $.each($(response.documentElement).children(), function()
                 {
                     var app = {
@@ -156,11 +170,21 @@ var AppointmentWidget = function()
                             });
                         });
                     });
-                    $("#results").append(appointmentTemplate(app));
+                    appointments[app.appointment.id] = app;
                 });
             }).fail(function(resp)
             {
                 console.error(resp.responseText);
+            });
+            return appointments;
+        }
+
+        function showAppointments()
+        {
+            $("#results").empty();
+            $.each(getAppointments($(this).attr("extension")), function(id, app)
+            {
+                $("#results").append(appointmentTemplate(app));
             });
         }
 
@@ -185,12 +209,12 @@ var AppointmentWidget = function()
         //////////////////////////////////////////
         // Find Pieces and Enliven DOM Fragment //
         //////////////////////////////////////////
-        $("input#getAppointments").click(getAppointments);
-        $("input#getAppointment").click(getAppointments);
-        $("input#getAppointmentId").change(function()
+        $("input#getAppointments").click(showAppointments);
+        $("input#getAppointment").click(showAppointments);
+        $("select#appointmentId").change(function()
         {
             $("input#getAppointment").attr("extension", "Appointments/" + $(this).val());
-        });
+        }).change();
         $("input#getServices").click(getServices);
         $("input#refreshDatabase").click(function()
         {
@@ -200,6 +224,16 @@ var AppointmentWidget = function()
                 $("#results").append("Database Refreshed.");
                 location.reload();
             });
+        });
+        $("input#makeAppointment").click(function()
+        {
+            $("#results").empty();
+            makeCreateAppointmentWidget($("#results"));
+        });
+        $("input#updateAppointment").click(function()
+        {
+            $("#results").empty();
+            makeCreateAppointmentWidget($("#results"), $("select#appointmentId").val());
         });
 
         /////////////////////////////
@@ -213,7 +247,15 @@ var AppointmentWidget = function()
             update : function()
             {},
             log : function(message)
-            {}
+            {},
+            getAppointments : function()
+            {
+                return getAppointments("Appointments");
+            },
+            refresh : function()
+            {
+                fillAppointmentIds();
+            }
         };
     };
 
@@ -222,4 +264,5 @@ var AppointmentWidget = function()
 $(document).ready(function()
 {
     appointmentWidget = makeAppointmentWidget($("#content"));
+    appointmentWidget.refresh();
 });

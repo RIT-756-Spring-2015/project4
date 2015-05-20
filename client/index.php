@@ -4,7 +4,7 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 <html>
 <head>
 
-<title>Appointment Management API</title>
+<title>Appointment Manager</title>
 <meta name="description" content="basic">
 <meta name="author" content="Alex Aiezza">
 <meta name="author" content="Sagar Barbhaya">
@@ -17,7 +17,9 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 <script src='//code.jquery.com/jquery-2.1.3.min.js'></script>
 <script src='js/lib/underscore-min.js'></script>
 <script src='js/lib/perfect-scrollbar.min.js'></script>
+<script src="js/CreateAppointmentWidget.js"></script>
 <script src="js/AppointmentWidget.js"></script>
+
 <script>
 $(document).ready(function()
 {
@@ -43,8 +45,7 @@ $(document).ready(function()
 				value="Update Appointment" extension="Appointments/">
 		</p>
 		<p style="padding-left: 94px;">
-			<input id="makeAppointment" type="button" value="Make Appointment"
-				onclick="fillForm.php">
+			<input id="makeAppointment" type="button" value="Make Appointment">
 				<input id="refreshDatabase" type="button" value="Refresh Database">
 		</p>
 	</div>
