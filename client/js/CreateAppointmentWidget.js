@@ -239,7 +239,9 @@ var CreateAppointmentWidget = function()
                 function success(resp)
                 {
                     container.empty();
-                    container.append($(resp.responseText).children("uri"));
+                    var app = $(resp).children().children("uri").html();
+                    var title = appId ? "Appointment " + appId + " Updated" : "New Appointment Created";
+                    container.append("<h3>" + title + "</h3><p style='padding-left:40px;'><a href='" + app + "'>" + app + "</a></p>");
                     appointmentWidget.refresh();
                 }
                 function error(resp)
@@ -273,13 +275,26 @@ var CreateAppointmentWidget = function()
             {
                 var app = appointments[appId];
 
-                // TODO
                 $("input#date")[0].defaultValue = app.appointment.date;
                 $("input#time")[0].defaultValue = app.appointment.time;
-                $("select#patient").val()
+                $("select#patient").val(app.patient.id).change();
+                $("select#phlebotomist").val(app.phlebotomist.id).change();
+                $("select#psc").val(app.psc.id).change();
 
                 // For as many labtests as this appointment has, click addLabTest
                 // They are returned in order, so fill them in order
+                for (var i = 0; i < app.labTests.tests.length; i++)
+                    $("input#addLabTest").click();
+
+                $.each($("select#labTests"), function(i)
+                {
+                    $(this).val(app.labTests.tests[i].labTest.id).change();
+                });
+
+                $.each($("select#diagnosis"), function(i)
+                {
+                    $(this).val(app.labTests.tests[i].diagnosis.dxcode).change();
+                });
 
             } else
             {

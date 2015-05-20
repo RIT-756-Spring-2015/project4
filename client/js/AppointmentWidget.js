@@ -209,6 +209,8 @@ var AppointmentWidget = function()
         //////////////////////////////////////////
         // Find Pieces and Enliven DOM Fragment //
         //////////////////////////////////////////
+        fillAppointmentIds();
+        
         $("input#getAppointments").click(showAppointments);
         $("input#getAppointment").click(showAppointments);
         $("select#appointmentId").change(function()
@@ -264,5 +266,4 @@ var AppointmentWidget = function()
 $(document).ready(function()
 {
     appointmentWidget = makeAppointmentWidget($("#content"));
-    appointmentWidget.refresh();
 });

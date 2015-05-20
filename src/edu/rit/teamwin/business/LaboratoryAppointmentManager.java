@@ -214,6 +214,7 @@ public class LaboratoryAppointmentManager
             alt.setLabTest( getItemByKey( LABTEST_TABLE, "id", test.getLabTest().getId() ) );
             // See if diagnosis code exists
             alt.setDiagnosis( getItemByKey( DIAGNOSIS_TABLE, "code", test.getDiagnosis().getCode() ) );
+            alt.setAppointment( appointment );
             labTestsList.add( alt );
         }
         appointment.setAppointmentLabTestCollection( labTestsList );

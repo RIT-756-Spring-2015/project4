@@ -138,6 +138,15 @@ public class LaboratoryAppointmentService
 
         return buildResponse("");
     }
+    
+    @Path ( "Appointments/{appId}" )
+    @OPTIONS
+    public Response optionsAppointment()
+    {
+        LOG.info( "OPTIONS Appointments called" );
+
+        return buildResponse("");
+    }
 
     @Path ( "Appointments/{appointment}" )
     @GET
