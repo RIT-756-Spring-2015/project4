@@ -23,7 +23,7 @@ public class LAMExceptionXMLConverter implements ExceptionMapper<Exception>
     @Override
     public Response toResponse( final Exception exception )
     {
-        final ResponseBuilder responseBuilder = Response.serverError();
+        final ResponseBuilder responseBuilder = Response.status( 406 );
         responseBuilder.header( "Access-Control-Allow-Origin", "*" );
 
         final String resp = format( ERROR, exception.getMessage() );

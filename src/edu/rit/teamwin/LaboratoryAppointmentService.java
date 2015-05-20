@@ -129,23 +129,14 @@ public class LaboratoryAppointmentService
 
         return buildResponse( LAM.<Appointment> getData( APPOINTMENT_TABLE, NO_FILTER ) );
     }
-    
+
     @Path ( "Appointments" )
     @OPTIONS
     public Response optionsAppointments()
     {
         LOG.info( "OPTIONS Appointments called" );
 
-        return buildResponse("");
-    }
-    
-    @Path ( "Appointments/{appId}" )
-    @OPTIONS
-    public Response optionsAppointment()
-    {
-        LOG.info( "OPTIONS Appointments called" );
-
-        return buildResponse("");
+        return buildResponse( "" );
     }
 
     @Path ( "Appointments/{appointment}" )
@@ -207,6 +198,15 @@ public class LaboratoryAppointmentService
 
         return buildResponse( format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
                 "LAMSAppointment/Appointments/" + app.getId() + "</uri>" ) );
+    }
+    
+    @Path ( "Appointments/{a}" )
+    @OPTIONS
+    public Response optionsAppointment()
+    {
+        LOG.info( "OPTIONS Appointment called" );
+
+        return buildResponse( "<response/>" );
     }
 
     @Path ( "Patients" )
