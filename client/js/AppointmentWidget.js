@@ -192,6 +192,15 @@ var AppointmentWidget = function()
             $("input#getAppointment").attr("extension", "Appointments/" + $(this).val());
         });
         $("input#getServices").click(getServices);
+        $("input#refreshDatabase").click(function()
+        {
+            $("#results").empty();
+            $.get(serverURL + "refresh").always(function()
+            {
+                $("#results").append("Database Refreshed.");
+                location.reload();
+            });
+        });
 
         /////////////////////////////
         // Public Instance Methods //

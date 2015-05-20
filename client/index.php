@@ -28,35 +28,25 @@ $(document).ready(function()
 </head>
 <body>
 	<div id="content">
-			<p>
-				<input id="getServices" type="button" value="Get Services"
-					extension="Services">
-			</p>
-			<p>
-				<input id="getAppointments" type="button"
-					value="Get Appointments" extension="Appointments">
-			</p>
-			<p>
-				<input id="getAppointment" type="button" value="Get Appointment"
-					extension="Appointments/" >
-				
-				    <select id="getAppointmentId" type="text" value="Appointment ID">
-				<?php
-                    $appIds = file_get_contents( $serverUrl . 'Appointments' );
-//                     var_dump( $appIds );
-                ?>
-				    </select>
-			</p>
-			<p>
-				<input id="makeAppointment" type="button"
-					value="Make Appointment" onclick="fillForm.php">
-			</p>
-			<p>
-				<input id="updateAppointment" type="button"
-					value="Update Appointment" appointmentId="">
-				<input id="updateAppointmentId" type="text"
-					value="Appointment ID">
-			</p>
+		<p style="padding-left: 94px;">
+			<input id="getServices" type="button" value="Get Services"
+				extension="Services">
+			<input id="getAppointments" type="button" value="Get Appointments"
+				extension="Appointments">
+		</p>
+		<p>
+    	    <select id="appointmentId">
+		    </select>
+			<input id="getAppointment" type="button" value="Get Appointment"
+				extension="Appointments/">
+		    <input id="updateAppointment" type="button"
+				value="Update Appointment" extension="Appointments/">
+		</p>
+		<p style="padding-left: 94px;">
+			<input id="makeAppointment" type="button" value="Make Appointment"
+				onclick="fillForm.php">
+				<input id="refreshDatabase" type="button" value="Refresh Database">
+		</p>
 	</div>
 
 	<div id="results"></div>
