@@ -111,7 +111,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
             xstream.alias( "AppointmentList", Appointment.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
-            writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" );
+            writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" );
             xstream.toXML( appointment, writer );
         }
 
@@ -175,7 +175,7 @@ public abstract class LAMEntityXMLConverter <T> implements MessageBodyWriter<T>,
 
             xstream.alias( "AppointmentList", List.class );
             final Writer writer = new OutputStreamWriter( out, "UTF-8" );
-            writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" );
+            writer.write( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" );
             xstream.toXML( list, writer );
         }
 

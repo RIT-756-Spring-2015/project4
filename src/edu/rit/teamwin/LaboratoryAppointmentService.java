@@ -97,7 +97,15 @@ public class LaboratoryAppointmentService
     public String init()
     {
         LOG.debug( "Initializing Database" );
-        return "" + LAM.initializeDatabase();
+        return "<response>" + LAM.initializeDatabase() + "</response>";
+    }
+
+    @Path ( "refresh" )
+    @GET
+    public String refresh()
+    {
+        LOG.debug( "Refreshing Database" );
+        return "<response>" + LAM.refreshDatabase() + "</response>";
     }
 
     @Path ( "Services" )
@@ -134,30 +142,23 @@ public class LaboratoryAppointmentService
     @POST
     @Consumes ( MediaType.APPLICATION_XML )
     public Response createAppointment( final Appointment appointment )
-            throws MaximumAppointmentCapacityReachedException
+            throws MaximumAppointmentCapacityReachedException, AppointmentNotValidException,
+            ItemNotFoundException
     {
         LOG.info( "POST Appointments called" );
 
-        try
-        {
-            final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
-                    .getAppointmentLabTestCollection().size()];
+        final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
+                .getAppointmentLabTestCollection().size()];
 
-            final Appointment app = LAM.createAppointment( LocalDateTime.of( appointment
-                    .getApptdate().toLocalDate(), appointment.getAppttime().toLocalTime() ),
-                appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid(),
-                appointment.getAppointmentLabTestCollection().toArray( labTests ) );
+        final Appointment app = LAM.createAppointment( LocalDateTime.of( appointment.getApptdate()
+                .toLocalDate(), appointment.getAppttime().toLocalTime() ), appointment
+                .getPatientid(), appointment.getPscid(), appointment.getPhlebid(), appointment
+                .getAppointmentLabTestCollection().toArray( labTests ) );
 
-            LAM.setupAppointment( app );
+        LAM.setupAppointment( app );
 
-            return buildResponse( format( getProperty( "default.xml" ),
-                "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointments/" + app.getId() +
-                        "</uri>" ) );
-        } catch ( AppointmentNotValidException | ItemNotFoundException e )
-        {
-            return buildResponse( format( getProperty( "default.xml" ), "<error>" + e.getMessage() +
-                    "</error>" ) );
-        }
+        return buildResponse( format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
+                "LAMSAppointment/Appointments/" + app.getId() + "</uri>" ) );
     }
 
     @Path ( "Appointments/{appointment}" )
@@ -170,29 +171,21 @@ public class LaboratoryAppointmentService
     {
         LOG.info( format( "PUT Appointments %s called", appointmentId ) );
 
-        try
-        {
-            final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
-                    .getAppointmentLabTestCollection().size()];
+        final AppointmentLabTest [] labTests = new AppointmentLabTest [appointment
+                .getAppointmentLabTestCollection().size()];
 
-            final Appointment app = LAM.createAppointment( appointmentId, LocalDateTime.of(
-                appointment.getApptdate().toLocalDate(), appointment.getAppttime().toLocalTime() ),
-                appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid(),
-                appointment.getAppointmentLabTestCollection().toArray( labTests ) );
+        final Appointment app = LAM.createAppointment( appointmentId, LocalDateTime.of( appointment
+                .getApptdate().toLocalDate(), appointment.getAppttime().toLocalTime() ),
+            appointment.getPatientid(), appointment.getPscid(), appointment.getPhlebid(),
+            appointment.getAppointmentLabTestCollection().toArray( labTests ) );
 
-            final Appointment oldAppointment = LAM.getItemByKey( APPOINTMENT_TABLE, "id",
-                appointmentId );
+        final Appointment oldAppointment = LAM
+                .getItemByKey( APPOINTMENT_TABLE, "id", appointmentId );
 
-            LAM.updateAppointment( oldAppointment, app );
+        LAM.updateAppointment( oldAppointment, app );
 
-            return buildResponse( format( getProperty( "default.xml" ),
-                "<uri>" + context.getBaseUri() + "LAMSAppointment/Appointments/" + app.getId() +
-                        "</uri>" ) );
-        } catch ( AppointmentNotValidException | ItemNotFoundException e )
-        {
-            return buildResponse( format( getProperty( "default.xml" ), "<error>" + e.getMessage() +
-                    "</error>" ) );
-        }
+        return buildResponse( format( getProperty( "default.xml" ), "<uri>" + context.getBaseUri() +
+                "LAMSAppointment/Appointments/" + app.getId() + "</uri>" ) );
     }
 
     @Path ( "Patients" )

@@ -13,6 +13,7 @@ import components.data.IComponentsData;
 
 import edu.rit.teamwin.business.LaboratoryAppointmentManager;
 import edu.rit.teamwin.stream.LAMEntityXMLConverter;
+import edu.rit.teamwin.stream.LAMExceptionXMLConverter;
 
 /**
  * 
@@ -30,9 +31,10 @@ public class ApplicationConfig extends Application
         final Set<Class<?>> classes = new java.util.HashSet<>();
         classes.add( LAMEntityXMLConverter.AppointmentMessageBody.class );
         classes.add( LAMEntityXMLConverter.ListMessageBody.class );
+        classes.add( LAMExceptionXMLConverter.class );
         return classes;
     }
-    
+
     @Override
     public Set<Object> getSingletons()
     {
@@ -45,7 +47,8 @@ public class ApplicationConfig extends Application
     {
         final IComponentsData dataLayer = new DB();
         singletons.add( dataLayer );
-        final LaboratoryAppointmentManager businessLayer = new LaboratoryAppointmentManager( dataLayer );
+        final LaboratoryAppointmentManager businessLayer = new LaboratoryAppointmentManager(
+                dataLayer );
         singletons.add( businessLayer );
         singletons.add( new LaboratoryAppointmentService( businessLayer ) );
     }

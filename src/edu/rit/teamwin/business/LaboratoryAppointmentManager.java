@@ -93,7 +93,7 @@ public class LaboratoryAppointmentManager
 
     private final Log             LOG = LogFactory.getLog( getClass() );
 
-    private final IComponentsData dataLayer;
+    private IComponentsData       dataLayer;
 
     /**
      * @param dataLayer
@@ -108,7 +108,14 @@ public class LaboratoryAppointmentManager
     public boolean initializeDatabase()
     {
         /* Start it up! */
+        dataLayer = new DB();
         return dataLayer.initialLoad( "LAMS" );
+    }
+    
+    public boolean refreshDatabase()
+    {
+        dataLayer = new DB();
+        return true;
     }
 
     /**

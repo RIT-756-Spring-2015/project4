@@ -16,35 +16,47 @@ $serverUrl = isset( $_GET['server'] ) ? $_GET['server'] : "http://shaba.zapto.or
 
 <script src='//code.jquery.com/jquery-2.1.3.min.js'></script>
 <script src='js/lib/underscore-min.js'></script>
+<script src='js/lib/perfect-scrollbar.min.js'></script>
 <script src="js/AppointmentWidget.js"></script>
+<script>
+$(document).ready(function()
+{
+    $("div#results").perfectScrollbar();
+});
+</script>
 
 </head>
 <body>
 	<div id="content">
-		<table>
-			<tr>
-				<td><input id="getServices" type="button" value="Get Services" extension="Services"></td>
-			</tr>
-			<tr>
-				<td><input id="getAppointments" type="button" value="Get Appointments"
-					extension="Appointments"
-					></td>
-			</tr>
-			<tr>
-				<td><input id="getAppointment" type="button" value="Get Appointment"
-					extension="Appointments/" appointmentId=""></td>
-				<td><input id="getAppointmentId" type="text" value="Appointment ID"></td>
-			</tr>
-			<tr>
-				<td><input id="makeAppointment" type="button" value="Make Appointment"
-					onclick="fillForm.php"></td>
-
-			</tr>
-			<tr>
-				<td><input id="updateAppointment" type="button" value="Update Appointment" appointmentId=""></td>
-				<td><input id="updateAppointmentId" type="text" value="Appointment ID"></td>
-			</tr>
-		</table>
+			<p>
+				<input id="getServices" type="button" value="Get Services"
+					extension="Services">
+			</p>
+			<p>
+				<input id="getAppointments" type="button"
+					value="Get Appointments" extension="Appointments">
+			</p>
+			<p>
+				<input id="getAppointment" type="button" value="Get Appointment"
+					extension="Appointments/" >
+				
+				    <select id="getAppointmentId" type="text" value="Appointment ID">
+				<?php
+                    $appIds = file_get_contents( $serverUrl . 'Appointments' );
+//                     var_dump( $appIds );
+                ?>
+				    </select>
+			</p>
+			<p>
+				<input id="makeAppointment" type="button"
+					value="Make Appointment" onclick="fillForm.php">
+			</p>
+			<p>
+				<input id="updateAppointment" type="button"
+					value="Update Appointment" appointmentId="">
+				<input id="updateAppointmentId" type="text"
+					value="Appointment ID">
+			</p>
 	</div>
 
 	<div id="results"></div>

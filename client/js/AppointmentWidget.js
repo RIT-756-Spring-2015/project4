@@ -30,29 +30,63 @@ var AppointmentWidget = function()
 
         var appointmentTemplate = _
         .template("\
-            <p>\
+            <div>\
             <p><a href=\"<%= appointment.uri %>\">Appointment: <%= appointment.id %></a> \
             [<%= appointment.date %>, <%= appointment.time %>]</p>\
-            <p>&nbsp;&nbsp;<a href=\"<%= patient.uri %>\">Patient: <%= patient.id %></a> \
+            <p style='padding-left:20px;margin-bottom:0;'><a href=\"<%= patient.uri %>\">Patient: <%= patient.id %></a> \
             [<%= patient.name %>]</p>\
-            <p>&nbsp;&nbsp;<a href=\"<%= phlebotomist.uri %>\">Phlebotomist: <%= phlebotomist.id %></a> \
+            <p style='padding-left:40px;margin:0;'>><a href=\"<%= physician.uri %>\">Physician: <%= physician.id %></a> \
+            [<%= physician.name %>]</p>\
+            <p style='padding-left:20px;'><a href=\"<%= phlebotomist.uri %>\">Phlebotomist: <%= phlebotomist.id %></a> \
             [<%= phlebotomist.name %>]</p>\
-            <p>&nbsp;&nbsp;<a href=\"<%= psc.uri %>\">PSC: <%= psc.id %></a> \
+            <p style='padding-left:20px;'><a href=\"<%= psc.uri %>\">PSC: <%= psc.id %></a> \
             [<%= psc.name %>]</p>\
-            <p>&nbsp;&nbsp;<a href=\"<%= labTests.uri %>\">Labtests</a>:</p> \
+            <p style='padding-left:20px;'><a href=\"<%= labTests.uri %>\">Labtests</a>:</p> \
                 <% $.each( labTests.tests, function( i, test ){ %>\
-                        <p>&nbsp;&nbsp;&nbsp;&nbsp;\
-                        <a href=\"<%= test.labTest.uri %>\">LabTest: <%= test.labTest.id %></a> [<%= test.labTest.name %>](<%= test.labTest.cost %>)\
-                        		, <a href=\"<%= test.diagnosis.uri %>\">Diagnosis: <%= test.diagnosis.dxcode %></a> [<%= test.diagnosis.name %>]</p>\
+                        <p style='padding-left:40px;margin-bottom:0;'>\
+                        <a href=\"<%= test.labTest.uri %>\">LabTest: <%= test.labTest.id %></a> [<%= test.labTest.name %>] ($<%= test.labTest.cost %>)</p>\
+                        		<p style='padding-left:60px;margin:0;'>><a href=\"<%= test.diagnosis.uri %>\">Diagnosis: <%= test.diagnosis.dxcode %></a> [<%= test.diagnosis.name %>]</p>\
                 <% }); %>\
-            </p><hr>");
+            </div><hr>");
+
+        var serviceTemplate = _
+        .template("\
+            <div>\
+            <h3><p><%= intro %></p>\
+            <p style='padding-left:20px;'><a href=\"<%= wadl %>\"><%= wadl %></a></p></h3>\
+			</div>");
+
+        var patients = {};
+
+        $.ajax({
+            async : false,
+            url : serverURL + "Physicians"
+        }).done(function(response)
+        {
+            $.each($(response.documentElement).children(), function()
+            {
+                var physician = {
+                    id : $(this).attr("id"),
+                    uri : $(this).children("uri").html(),
+                    name : $(this).children("name").html()
+                };
+
+                $.each($(this).children("patients").children(), function()
+                {
+                    patients[$(this).attr("id")] = physician;
+                });
+            });
+        });
 
         //////////////////////////////
         // Private Instance Methods //
         //////////////////////////////
         function getAppointments()
         {
-            $.get(serverURL + $(this).attr("extension")).done(function(response)
+            $.ajax({
+                async : false,
+                url : serverURL + $(this).attr("extension")
+            }).done(function(response)
             {
                 $("#results").empty();
                 $.each($(response.documentElement).children(), function()
@@ -69,6 +103,7 @@ var AppointmentWidget = function()
                             id : $(this).children("patient").attr("id"),
                             name : $(this).children("patient").children("name").html()
                         },
+                        physician : patients[$(this).children("patient").attr("id")],
                         phlebotomist : {
                             uri : $(this).children("phlebotomist").children("uri").html(),
                             id : $(this).children("phlebotomist").attr("id"),
@@ -96,26 +131,32 @@ var AppointmentWidget = function()
                             dxcode : $(this).attr("dxcode")
                         };
 
-                        $.get(serverURL + "LabTests/" + labTest.id).done(function(response)
+                        $.ajax({
+                            async : false,
+                            url : serverURL + "LabTests/" + labTest.id
+                        }).done(function(response)
                         {
                             labTest["uri"] = $(response.documentElement).children("appointmentLabTest").children("uri").html();
                             labTest["name"] = $(response.documentElement).children("appointmentLabTest").children("name").html();
                             labTest["cost"] = $(response.documentElement).children("appointmentLabTest").children("cost").html();
 
-                            $.get(serverURL + "Diagnoses/" + diagnosis.dxcode).done(function(response)
-                            {
-                                diagnosis["uri"] = $(response.documentElement).children("appointmentLabTest").children("uri").html();
-                                diagnosis["name"] = $(response.documentElement).children("appointmentLabTest").children("name").html();
+                        });
 
-                                app.labTests.tests.push({
-                                    labTest : labTest,
-                                    diagnosis : diagnosis
-                                });
+                        $.ajax({
+                            async : false,
+                            url : serverURL + "Diagnoses/" + diagnosis.dxcode
+                        }).done(function(response)
+                        {
+                            diagnosis["uri"] = $(response.documentElement).children("appointmentLabTest").children("uri").html();
+                            diagnosis["name"] = $(response.documentElement).children("appointmentLabTest").children("name").html();
 
-                                $("#results").append(appointmentTemplate(app));
+                            app.labTests.tests.push({
+                                labTest : labTest,
+                                diagnosis : diagnosis
                             });
                         });
                     });
+                    $("#results").append(appointmentTemplate(app));
                 });
             }).fail(function(resp)
             {
@@ -123,10 +164,34 @@ var AppointmentWidget = function()
             });
         }
 
+        function getServices()
+        {
+            $.ajax({
+                async : false,
+                url : serverURL + $(this).attr("extension")
+            }).done(function(response)
+            {
+                $("#results").empty();
+
+                var service = {
+                    intro : $(response.documentElement).children("intro").html(),
+                    wadl : $(response.documentElement).children("wadl").html()
+                };
+
+                $("#results").append(serviceTemplate(service));
+            });
+        }
+
         //////////////////////////////////////////
         // Find Pieces and Enliven DOM Fragment //
         //////////////////////////////////////////
         $("input#getAppointments").click(getAppointments);
+        $("input#getAppointment").click(getAppointments);
+        $("input#getAppointmentId").change(function()
+        {
+            $("input#getAppointment").attr("extension", "Appointments/" + $(this).val());
+        });
+        $("input#getServices").click(getServices);
 
         /////////////////////////////
         // Public Instance Methods //
